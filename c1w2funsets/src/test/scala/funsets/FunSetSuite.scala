@@ -110,5 +110,61 @@ class FunSetSuite extends FunSuite {
     }
   }
 
+  test("intersect contains same elements of both set") {
+    new TestSets {
+      val s = intersect(union(s1, s2), union(s1, s3))
+      assert(contains(s, 1), "Intersect 1")
+      assert(!contains(s, 2), "Intersect 2")
+      assert(!contains(s, 3), "Intersect 3")
+    }
+  }
 
+  test("diff contains elements of the first set that are not in the second set.") {
+    new TestSets {
+      val s = diff(union(s1, s2), union(s1, s3))
+      assert(!contains(s, 1), "Diff 1")
+      assert(contains(s, 2), "Diff 2")
+      assert(!contains(s, 3), "Diff 3")
+    }
+  }
+
+  test("filter contains filtered elements only.") {
+    new TestSets {
+      val s = filter(union(s1, s2), x => x < 2)
+      assert(contains(s, 1), "Filter 1")
+      assert(!contains(s, 2), "Filter 2")
+      assert(!contains(s, 3), "Filter 3")
+    }
+  }
+
+  test("forall returns true if all elements satisfy `p`.") {
+    new TestSets {
+      val s = union(union(s1, s2), s3)
+      assert(forall(s, x => x < 10), "Forall 1")
+      assert(!forall(s, x => x > 10), "Forall 2")
+      assert(!forall(s, x => x == 10), "Filter 3")
+    }
+  }
+
+  test("exists returns true if all elements satisfy `p`.") {
+    new TestSets {
+      val s = union(union(s1, s2), s3)
+      assert(exists(s, x => x == 1), "Exists 1")
+      assert(!exists(s, x => x > 10), "Exists 2")
+      assert(exists(s, x => x < 10), "Exists 3")
+    }
+  }
+
+  test("map returns set of elements that applied f.") {
+    new TestSets {
+      val s = union(union(s1, s2), s3)
+
+      val squires = map(s, x => x * x)
+
+      assert(contains(squires, 1), "Map 1")
+      assert(contains(squires, 4), "Map 2")
+      assert(contains(squires, 9), "Map 3")
+      assert(!contains(squires, 16), "Map 4")
+    }
+  }
 }
