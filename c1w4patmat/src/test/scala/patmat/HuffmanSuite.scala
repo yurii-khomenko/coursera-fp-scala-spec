@@ -70,9 +70,7 @@ class HuffmanSuite extends FunSuite {
 
   test("encode") {
     new TestTrees {
-      val enc = encode(codeTree)(text.toList)
-      println(enc)
-      assert(enc === encodedText)
+      assert(encode(codeTree)(text.toList) === encodedText)
     }
   }
 
