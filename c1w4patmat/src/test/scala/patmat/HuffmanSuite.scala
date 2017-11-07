@@ -15,6 +15,8 @@ class HuffmanSuite extends FunSuite {
     val codeTree = createCodeTree(string2Chars("aaaaabbbbcccdde"))
     val encodedText = List[Bit](1, 0, 1, 1, 0, 1, 0)
     val text = "abc"
+
+    val codeTable = List(('e', List(0, 0, 0)), ('d', List(0, 0, 1)), ('c', List(0, 1, 0)), ('b', List(0, 1, 1)), ('a', List(1)))
   }
 
   test("weight of a larger tree") {
@@ -77,6 +79,24 @@ class HuffmanSuite extends FunSuite {
   test("decode and encode a very short text should be identity") {
     new TestTrees {
       assert(decode(t1, encode(t1)("ab".toList)) === "ab".toList)
+    }
+  }
+
+  test("codeBits") {
+    new TestTrees {
+      assert(codeBits(codeTable)('b') === List[Bit](0, 1, 1))
+    }
+  }
+
+  test("convert") {
+    new TestTrees {
+      assert(convert(codeTree) === codeTable)
+    }
+  }
+
+  test("quickEncode") {
+    new TestTrees {
+      assert(quickEncode(codeTree)(text.toList) === encodedText)
     }
   }
 }
