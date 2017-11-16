@@ -2,6 +2,11 @@ val xs = Array(1, 2, 3, 44)
 xs map (_ * 2)
 
 val s = "Hello World"
+
+type Word = String
+
+List[Word]
+
 s filter (_.isUpper)
 
 s exists (_.isUpper)

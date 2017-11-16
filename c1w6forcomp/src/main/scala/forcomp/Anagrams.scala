@@ -61,7 +61,7 @@ object Anagrams {
     *
     */
   lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] =
-    dictionary groupBy wordOccurrences
+    dictionary groupBy wordOccurrences withDefaultValue Nil
 
 
   /** Returns all the anagrams of a given word. */
@@ -110,17 +110,26 @@ object Anagrams {
     * Note: the resulting value is an occurrence - meaning it is sorted
     * and has no zero-entries.
     */
-  def subtract(x: Occurrences, y: Occurrences): Occurrences = {
+  //  def subtract(x: Occurrences, y: Occurrences): Occurrences = {
+  //
+  //    val ymap = y.toMap withDefaultValue 0
+  //
+  //    x.foldLeft(Map[Char, Int]()) {
+  //      case (map, (char, times)) =>
+  //        if (times - ymap(char) > 0) map + (char -> times)
+  //        else map
+  //    }.toList.sortWith(_._1 < _._1)
+  //  }
 
-    val ymap = y.toMap withDefaultValue 0
+  def subtract(x: Occurrences, y: Occurrences): Occurrences = y
 
-    x.foldLeft(Map[Char, Int]()) {
-      case (map, (char, times)) =>
-        if (times - ymap(char) > 0) map + (char -> times)
-        else map
-    }.toList
-  }
-
+    .foldLeft(x.toMap) {
+      case (xs, (char, times)) =>
+        val diff = xs.apply(char) - times
+        if (diff > 0) xs.updated(char, diff)
+        else xs.filterKeys(_ != char)
+    }
+    .toList.sorted
 
   /** Returns a list of all anagram sentences of the given sentence.
     *
@@ -162,8 +171,17 @@ object Anagrams {
     *
     * Note: There is only one anagram of an empty sentence.
     */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = sentence match {
-    case Nil => List(Nil)
-   // case word :: xs => sentenceOccurrences(sentence)//wordAnagrams(word) :: sentenceAnagrams(xs)
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
+
+    def subSentence(occ: Occurrences): List[Sentence] =
+      if (occ.isEmpty) List(Nil)
+      else
+        for {
+          combination <- combinations(occ)
+          word <- dictionaryByOccurrences(combination)
+          sentence <- subSentence(subtract(occ, combination))
+        } yield word :: sentence
+
+    subSentence(sentenceOccurrences(sentence))
   }
 }
