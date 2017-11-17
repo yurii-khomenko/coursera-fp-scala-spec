@@ -22,7 +22,7 @@ def show(json: JSON): String = json match {
   case JNull => "null"
 }
 
-val data = JObj(Map(
+val data: List[JSON] = List(JObj(Map(
   "firstName" -> JStr("John"),
   "lastName" -> JStr("Smith"),
   "address" -> JObj(Map(
@@ -39,7 +39,15 @@ val data = JObj(Map(
     ))
   )),
   "bool" -> JBool(true),
-  "null" -> JNull,
-))
+  "null" -> JNull
+)))
 
-show(data)
+data map show
+
+for {
+  JObj(bindings) <- data
+  JSeq(phones) = bindings("phoneNumbers")
+  JObj(phone) <- phones
+  JStr(digits) = phone("number")
+  if digits startsWith "212"
+} yield (bindings("firstName"), bindings("lastName"))
