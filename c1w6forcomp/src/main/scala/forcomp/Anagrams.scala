@@ -1,5 +1,7 @@
 package forcomp
 
+import scala.collection.mutable
+
 
 object Anagrams {
 
@@ -180,6 +182,25 @@ object Anagrams {
           combination <- combinations(occ)
           word <- dictionaryByOccurrences(combination)
           sentence <- subSentence(subtract(occ, combination))
+        } yield word :: sentence
+
+    subSentence(sentenceOccurrences(sentence))
+  }
+
+  def sentenceAnagramsMemo(sentence: Sentence): List[Sentence] = {
+
+    val cache = mutable.Map[Occurrences, List[Sentence]]()
+
+    def subSentenceMemo(occurrences: Occurrences): List[Sentence] =
+      cache.getOrElseUpdate(occurrences, subSentence(occurrences))
+
+    def subSentence(occ: Occurrences): List[Sentence] =
+      if (occ.isEmpty) List(Nil)
+      else
+        for {
+          combination <- combinations(occ)
+          word <- dictionaryByOccurrences(combination)
+          sentence <- subSentenceMemo(subtract(occ, combination))
         } yield word :: sentence
 
     subSentence(sentenceOccurrences(sentence))
