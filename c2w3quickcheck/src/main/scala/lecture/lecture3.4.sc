@@ -20,4 +20,3 @@ def fullAdder(a: Wire, b: Wire, cin: Wire, sum: Wire, cout: Wire): Unit = {
 }
 
 val a, b, c = new Wire
-
