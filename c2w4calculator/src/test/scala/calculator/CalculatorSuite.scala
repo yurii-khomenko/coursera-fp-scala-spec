@@ -1,20 +1,16 @@
 package calculator
 
-import org.scalatest.FunSuite
-
+import calculator.TweetLength.MaxTweetLength
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.scalatest._
-
-import TweetLength.MaxTweetLength
+import org.scalatest.{FunSuite, _}
 
 @RunWith(classOf[JUnitRunner])
 class CalculatorSuite extends FunSuite with ShouldMatchers {
 
-  /******************
-   ** TWEET LENGTH **
-   ******************/
+  /** ****************
+    * * TWEET LENGTH **
+    * *****************/
 
   def tweetLength(text: String): Int =
     text.codePointCount(0, text.length)
@@ -33,7 +29,6 @@ class CalculatorSuite extends FunSuite with ShouldMatchers {
     assert(result() == MaxTweetLength - tweetLength("foo blabla \uD83D\uDCA9 bar"))
   }
 
-
   test("colorForRemainingCharsCount with a constant signal") {
     val resultGreen1 = TweetLength.colorForRemainingCharsCount(Var(52))
     assert(resultGreen1() == "green")
@@ -51,4 +46,20 @@ class CalculatorSuite extends FunSuite with ShouldMatchers {
     assert(resultRed2() == "red")
   }
 
+  test("computeDelta with a constant signal") {
+    val result = Polynomial.computeDelta(Var(5), Var(-4), Var(2))
+    assert(result() == -24.0)
+  }
+
+  test("computeSolutions with a constant signal1") {
+    val delta = Polynomial.computeDelta(Var(5), Var(-4), Var(2))
+    val result = Polynomial.computeSolutions(Var(5), Var(-4), Var(2), delta)
+    assert(result() == Set(0.0))
+  }
+
+  test("computeSolutions with a constant signal2") {
+    val delta = Polynomial.computeDelta(Var(-5), Var(4), Var(2))
+    val result = Polynomial.computeSolutions(Var(-5), Var(4), Var(2), delta)
+    assert(result() == Set(-0.34833147735478825, 1.1483314773547881))
+  }
 }
