@@ -10,7 +10,7 @@ object HorizontalBoxBlurRunner {
     Key.exec.maxWarmupRuns -> 10,
     Key.exec.benchRuns -> 10,
     Key.verbose -> true
-  ) withWarmer(new Warmer.Default)
+  ) withWarmer new Warmer.Default
 
   def main(args: Array[String]): Unit = {
     val radius = 3
@@ -42,9 +42,13 @@ object HorizontalBoxBlur {
    *  Within each row, `blur` traverses the pixels by going from left to right.
    */
   def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
-  // TODO implement this method using the `boxBlurKernel` method
-
-  ???
+    for {
+      y <- from until end
+      x <- 0 until src.width
+      if 0 <= y && y < src.height
+    } yield {
+      dst(x, y) = boxBlurKernel(src, x, y, radius)
+    }
   }
 
   /** Blurs the rows of the source image in parallel using `numTasks` tasks.
@@ -54,9 +58,17 @@ object HorizontalBoxBlur {
    *  rows.
    */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
-  // TODO implement using the `task` construct and the `blur` method
 
-  ???
+    val rowsPerTask = math.max(src.height / numTasks, 1)
+    val startPoints = 0 to src.height by rowsPerTask
+
+    val tasks = startPoints map { start =>
+      task {
+        blur(src, dst, start, start + rowsPerTask, radius)
+      }
+    }
+
+    tasks foreach (_.join)
   }
 
 }

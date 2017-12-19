@@ -15,7 +15,7 @@ object ScalaShop {
 
   class ScalaShopFrame extends JFrame("ScalaShop\u2122") {
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-    setSize(1024, 600)
+    setSize(1600, 900)
     setLayout(new BorderLayout)
 
     val rightpanel = new JPanel
@@ -24,7 +24,7 @@ object ScalaShop {
     add(rightpanel, BorderLayout.EAST)
 
     val controls = new JPanel
-    controls.setLayout(new GridLayout(0, 2))
+    controls.setLayout(new GridLayout(0, 1))
     rightpanel.add(controls, BorderLayout.NORTH)
 
     val filterLabel = new JLabel("Filter")
@@ -125,11 +125,10 @@ object ScalaShop {
     def getFilterName: String = {
       filterCombo.getSelectedItem.asInstanceOf[String]
     }
-
   }
 
   try {
-    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
   } catch {
     case _: Exception => println("Cannot set look and feel, using the default one.")
   }
@@ -139,5 +138,4 @@ object ScalaShop {
   def main(args: Array[String]) {
     frame.repaint()
   }
-
 }
