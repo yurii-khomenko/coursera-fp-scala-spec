@@ -2,7 +2,7 @@ import scala.math._
 
 def sumSegment(a: Array[Int], p: Double, s: Int, t: Int): Int =
   (s until t)
-    .map(i => (pow(abs(a(i)), p)).toInt)
+    .map(i => floor(pow(abs(a(i)), p)).toInt)
     .sum
 
 def pNorm(a: Array[Int], p: Double): Int =
