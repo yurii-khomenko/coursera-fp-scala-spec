@@ -22,6 +22,8 @@ def parMergeSort(xs: Array[Int], maxDepth: Int): Unit = {
   def merge(src: Array[Int], dst: Array[Int],
             from: Int, mid: Int, until: Int): Unit = ???
 
+  if (maxDepth % 2 == 0) copy(ys, xs, 0, xs.length, 0)
+
   def copy(src: Array[Int], target: Array[Int],
            from: Int, until: Int, depth: Int): Unit =
 
@@ -34,8 +36,6 @@ def parMergeSort(xs: Array[Int], maxDepth: Int): Unit = {
         copy(src, target, mid, from, depth + 1)
       )
     }
-
-  if (maxDepth % 2 == 0) copy(ys, xs, 0, xs.length, 0)
 
   sort(0, xs.length, 0)
 }
