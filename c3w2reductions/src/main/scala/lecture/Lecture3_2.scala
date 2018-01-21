@@ -3,7 +3,7 @@ package lecture
 import common._
 import org.scalameter.{Key, Warmer, config}
 
-object Lecture3_2 {
+object Lecture3_2 extends App {
 
   def mapASegSeq[A, B](src: Array[A], left: Int, right: Int, f: A => B, dst: Array[B]): Unit = {
 
@@ -35,7 +35,7 @@ object Lecture3_2 {
     else {
       val mid = left + (right - left) / 2
       parallel(mapASegFork(src, left, mid, f, dst, threshold),
-               mapASegFork(src, mid, right, f, dst, threshold))
+        mapASegFork(src, mid, right, f, dst, threshold))
     }
 
   val standardConfig = config(
@@ -45,32 +45,30 @@ object Lecture3_2 {
     Key.verbose -> true
   ) withWarmer new Warmer.Default
 
-  def main(args: Array[String]): Unit = {
 
-    val size = 100000000
-    val src = Array.fill(size)(3)
-    val dst = Array.fill(size)(0)
-    val f = (x: Int) => x * x
+  val size = 100000000
+  val src = Array.fill(size)(3)
+  val dst = Array.fill(size)(0)
+  val f = (x: Int) => x * x
 
-    val cores = Runtime.getRuntime.availableProcessors()
-    println(s"this machine has $cores cores")
+  val cores = Runtime.getRuntime.availableProcessors()
+  println(s"this machine has $cores cores")
 
-    val seqtime = standardConfig measure {
-      mapASegSeq(src, 0, src.length, f, dst)
-    }
-    println(s"sequential time: $seqtime ms")
-
-    val parTaskTime = standardConfig measure {
-      mapASegTask(src, dst, f, cores)
-    }
-    println(s"parTaskTime time: $parTaskTime ms")
-
-    val parForkTime = standardConfig measure {
-      mapASegFork(src, 0, src.length, f, dst, 10000000)
-    }
-    println(s"fork/join time: $parForkTime ms")
-
-    println(f"speedup by tasks: ${seqtime / parTaskTime}%.2f")
-    println(f"speedup by fork/join: ${seqtime / parForkTime}%.2f")
+  val seqtime = standardConfig measure {
+    mapASegSeq(src, 0, src.length, f, dst)
   }
+  println(s"sequential time: $seqtime ms")
+
+  val parTaskTime = standardConfig measure {
+    mapASegTask(src, dst, f, cores)
+  }
+  println(s"parTaskTime time: $parTaskTime ms")
+
+  val parForkTime = standardConfig measure {
+    mapASegFork(src, 0, src.length, f, dst, 10000000)
+  }
+  println(s"fork/join time: $parForkTime ms")
+
+  println(f"speedup by tasks: ${seqtime / parTaskTime}%.2f")
+  println(f"speedup by fork/join: ${seqtime / parForkTime}%.2f")
 }
