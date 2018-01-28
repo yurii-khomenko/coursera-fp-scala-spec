@@ -1,4 +1,4 @@
-package lecture.lecure3_6
+package lecture.lecure2_6
 
 import common.parallel
 

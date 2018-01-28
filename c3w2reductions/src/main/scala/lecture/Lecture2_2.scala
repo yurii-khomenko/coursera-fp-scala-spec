@@ -3,7 +3,7 @@ package lecture
 import common._
 import org.scalameter.{Key, Warmer, config}
 
-object Lecture3_2 extends App {
+object Lecture2_2 extends App {
 
   def mapASegSeq[A, B](src: Array[A], left: Int, right: Int, f: A => B, dst: Array[B]): Unit = {
 
