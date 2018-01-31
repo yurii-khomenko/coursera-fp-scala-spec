@@ -2,43 +2,38 @@ package lecture
 
 import org.scalameter.{Key, Warmer, config}
 
-object Lecture3_1 extends App {
+import scala.collection.GenSeq
 
-//  def initArraySeq(xs: Array[Int])(v: Int): Unit =
-//    for (i <- xs.indices) xs(i) = v
-
-  def initArraySeq(xs: Array[Int])(v: Int): Unit = { // imperative, but more fast
-    var i = 0
-    while (i < xs.length) {
-      xs(i) = v
-      i += 1
-    }
-  }
-
-  def initArrayPar(xs: Array[Int])(v: Int): Unit =
-    for (i <- xs.indices.par) xs(i) = v
+object Lecture3_3 extends App {
 
   val standardConfig = config(
-    Key.exec.minWarmupRuns -> 20,
+    Key.exec.minWarmupRuns -> 10,
     Key.exec.maxWarmupRuns -> 50,
     Key.exec.benchRuns -> 10,
     Key.verbose -> true
   ) withWarmer new Warmer.Default
 
-  val size = 100000000
+  val size = 1000000
   val array = Array.ofDim[Int](size)
+  val arrayPar = array.par
 
   val cores = Runtime.getRuntime.availableProcessors()
   println(s"this machine has $cores cores")
 
   val seqtime = standardConfig measure {
-    initArraySeq(array)(5)
+    largestPalindrome(array)
   }
   println(s"sequential time: $seqtime ms")
 
   val parTaskTime = standardConfig measure {
-    initArrayPar(array)(7)
+    largestPalindrome(arrayPar)
   }
   println(s"parallel time: $parTaskTime ms")
   println(f"speedup by parallel: ${seqtime / parTaskTime}%.2f")
+
+  def largestPalindrome(xs: GenSeq[Int]): Unit =
+    xs.aggregate(Int.MinValue)(
+      (largest, n) => if(n.toString == n.toString.reverse) n else largest,
+      math.max
+    )
 }
