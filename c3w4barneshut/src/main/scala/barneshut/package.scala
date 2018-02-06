@@ -1,5 +1,5 @@
-import common._
 import barneshut.conctrees._
+import common._
 
 package object barneshut {
 
@@ -45,19 +45,23 @@ package object barneshut {
 
   case class Empty(centerX: Float, centerY: Float, size: Float) extends Quad {
     def massX: Float = centerX
+
     def massY: Float = centerY
+
     def mass: Float = 0
+
     def total: Int = 0
-    def insert(b: Body): Quad = Leaf(centerX, centerY, 1, Seq(b))
+
+    def insert(b: Body): Quad = Leaf(centerX, centerY, size, Seq(b))
   }
 
   case class Fork(
-    nw: Quad, ne: Quad, sw: Quad, se: Quad
-  ) extends Quad {
-    val centerX: Float = ???
-    val centerY: Float = ???
-    val size: Float = ???
-    val mass: Float = ???
+                   nw: Quad, ne: Quad, sw: Quad, se: Quad
+                 ) extends Quad {
+    val centerX: Float = (nw.centerX + ne.centerX + sw.centerX + se.centerX) / 4
+    val centerY: Float = (nw.centerY + ne.centerY + sw.centerY + se.centerY) / 4
+    val size: Float = nw.size + ne.size + sw.size + se.size
+    val mass: Float = nw.mass + ne.mass + sw.mass + se.mass
     val massX: Float = ???
     val massY: Float = ???
     val total: Int = ???
@@ -68,9 +72,10 @@ package object barneshut {
   }
 
   case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: Seq[Body])
-  extends Quad {
-    val (mass, massX, massY) = (??? : Float, ??? : Float, ??? : Float)
-    val total: Int = ???
+    extends Quad {
+    val (mass, massX, massY) = (bodies.head.mass: Float, bodies.head.x: Float, bodies.head.y: Float)
+    val total: Int = 1
+
     def insert(b: Body): Quad = ???
   }
 
@@ -120,12 +125,12 @@ package object barneshut {
 
       def traverse(quad: Quad): Unit = (quad: Quad) match {
         case Empty(_, _, _) =>
-          // no force
+        // no force
         case Leaf(_, _, _, bodies) =>
-          // add force contribution of each body by calling addForce
+        // add force contribution of each body by calling addForce
         case Fork(nw, ne, sw, se) =>
-          // see if node is far enough from the body,
-          // or recursion is needed
+        // see if node is far enough from the body,
+        // or recursion is needed
       }
 
       traverse(quad)
@@ -160,13 +165,14 @@ package object barneshut {
 
     def toQuad(parallelism: Int): Quad = {
       def BALANCING_FACTOR = 4
+
       def quad(x: Int, y: Int, span: Int, achievedParallelism: Int): Quad = {
         if (span == 1) {
           val sectorSize = boundaries.size / sectorPrecision
           val centerX = boundaries.minX + x * sectorSize + sectorSize / 2
           val centerY = boundaries.minY + y * sectorSize + sectorSize / 2
           var emptyQuad: Quad = Empty(centerX, centerY, sectorSize)
-          val sectorBodies = this(x, y)
+          val sectorBodies = this (x, y)
           sectorBodies.foldLeft(emptyQuad)(_ insert _)
         } else {
           val nspan = span / 2
@@ -198,7 +204,7 @@ package object barneshut {
 
     def clear() = timeMap.clear()
 
-    def timed[T](title: String)(body: =>T): T = {
+    def timed[T](title: String)(body: => T): T = {
       var res: T = null.asInstanceOf[T]
       val totalTime = /*measure*/ {
         val startTime = System.currentTimeMillis()
@@ -218,7 +224,8 @@ package object barneshut {
     override def toString = {
       timeMap map {
         case (k, (total, num)) => k + ": " + (total / num * 100).toInt / 100.0 + " ms"
-      } mkString("\n")
+      } mkString ("\n")
     }
   }
+
 }
