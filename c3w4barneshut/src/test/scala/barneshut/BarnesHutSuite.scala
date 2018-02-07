@@ -112,6 +112,28 @@ import FloatOps._
     assert(res, s"Body not found in the right sector")
   }
 
+//  test("'Simulator.computeBoundaries' should compute correctly for 2 boundaries") {
+//    val b1 = new Boundaries()
+//    b1.minX = 1
+//    b1.minY = 4
+//    b1.maxX = 97
+//    b1.maxY = 150
+//
+//    val b2 = new Boundaries()
+//    b2.minX = 20
+//    b2.minY = 1
+//    b2.maxX = 160
+//    b2.maxY = 130
+//
+//    val b3 = new Boundaries()
+//    b3.minX = 1
+//    b3.minY = 1
+//    b3.maxX = 160
+//    b3.maxY = 150
+//
+//    val res = computeBoundaries
+//    assert(res, s"Body not found in the right sector")
+//  }
 }
 
 object FloatOps {
