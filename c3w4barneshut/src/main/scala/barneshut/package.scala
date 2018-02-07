@@ -4,50 +4,43 @@ import common._
 package object barneshut {
 
   class Boundaries {
-    var minX = Float.MaxValue
 
+    var minX = Float.MaxValue
     var minY = Float.MaxValue
 
     var maxX = Float.MinValue
-
     var maxY = Float.MinValue
 
     def width = maxX - minX
-
     def height = maxY - minY
 
     def size = math.max(width, height)
 
     def centerX = minX + width / 2
-
     def centerY = minY + height / 2
 
     override def toString = s"Boundaries($minX, $minY, $maxX, $maxY)"
   }
 
   sealed abstract class Quad {
-    def massX: Float
-
-    def massY: Float
-
-    def mass: Float
 
     def centerX: Float
-
     def centerY: Float
 
-    def size: Float
+    def massX: Float
+    def massY: Float
+    def mass: Float
 
+    def size: Float
     def total: Int
 
     def insert(b: Body): Quad
   }
 
   case class Empty(centerX: Float, centerY: Float, size: Float) extends Quad {
+
     def massX: Float = centerX
-
     def massY: Float = centerY
-
     def mass: Float = 0
 
     def total: Int = 0
@@ -55,28 +48,65 @@ package object barneshut {
     def insert(b: Body): Quad = Leaf(centerX, centerY, size, Seq(b))
   }
 
-  case class Fork(
-                   nw: Quad, ne: Quad, sw: Quad, se: Quad
-                 ) extends Quad {
+  case class Fork(nw: Quad, ne: Quad, sw: Quad, se: Quad) extends Quad {
+
     val centerX: Float = (nw.centerX + ne.centerX + sw.centerX + se.centerX) / 4
     val centerY: Float = (nw.centerY + ne.centerY + sw.centerY + se.centerY) / 4
-    val size: Float = nw.size + ne.size + sw.size + se.size
+
     val mass: Float = nw.mass + ne.mass + sw.mass + se.mass
-    val massX: Float = ???
-    val massY: Float = ???
-    val total: Int = ???
+    val massX: Float =
+      if (mass == 0) centerX
+      else (nw.mass * nw.massX + ne.mass * ne.massX + sw.mass * sw.massX + se.mass * se.massX) / mass
+    val massY: Float =
+      if (mass == 0) centerY
+      else (nw.mass * nw.massY + ne.mass * ne.massY + sw.mass * sw.massY + se.mass * se.massY) / mass
+
+    val size: Float = math.max(nw.size + ne.size, nw.size + sw.size)
+    val total: Int = nw.total + ne.total + sw.total + se.total
 
     def insert(b: Body): Fork = {
-      ???
+
+      val n = b.y < centerY
+      val w = b.x < centerX
+
+      if (n)
+        if (w) Fork(nw.insert(b), ne, sw, se)
+        else Fork(nw, ne.insert(b), sw, se)
+      else
+        if (w) Fork(nw, ne, sw.insert(b), se)
+        else Fork(nw, ne, sw, se.insert(b))
     }
   }
 
-  case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: Seq[Body])
-    extends Quad {
-    val (mass, massX, massY) = (bodies.head.mass: Float, bodies.head.x: Float, bodies.head.y: Float)
-    val total: Int = 1
+  case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: Seq[Body]) extends Quad {
 
-    def insert(b: Body): Quad = ???
+    val mass = bodies map(_.mass) sum
+    val massX = if (mass == 0) centerX else (bodies map(b => b.mass * b.x) sum) / mass
+    val massY = if (mass == 0) centerY else (bodies map(b => b.mass * b.y) sum) / mass
+
+    val total: Int = bodies.size
+
+    def insert(b: Body): Quad = {
+
+      val newBodies = bodies :+ b
+
+      if (size <= minimumSize) Leaf(centerX, centerY, size, newBodies)
+      else {
+
+        val centerNX = centerX - size / 4
+        val centerSX = centerX + size / 4
+        val centerWY = centerY - size / 4
+        val centerEY = centerY + size / 4
+        val emptySize = size / 2
+
+        val nw = Empty(centerNX, centerWY, emptySize)
+        val ne = Empty(centerNX, centerEY, emptySize)
+        val sw = Empty(centerSX, centerWY, emptySize)
+        val se = Empty(centerSX, centerEY, emptySize)
+
+        newBodies.foldLeft(Fork(nw, ne, sw, se))(_.insert(_))
+      }
+    }
   }
 
   def minimumSize = 0.00001f
