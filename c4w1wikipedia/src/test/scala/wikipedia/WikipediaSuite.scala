@@ -1,12 +1,8 @@
 package wikipedia
 
-import org.scalatest.{FunSuite, BeforeAndAfterAll}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 @RunWith(classOf[JUnitRunner])
 class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
@@ -31,6 +27,7 @@ class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
   /**
     * Creates a truncated string representation of a list, adding ", ...)" if there
     * are too many elements to show
+    *
     * @param l The list to preview
     * @param n The number of elements to cut it at
     * @return A preview of the list, containing at most n elements.
@@ -43,7 +40,8 @@ class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
     * Asserts that all the elements in a given list and an expected list are the same,
     * regardless of order. For a prettier output, given and expected should be sorted
     * with the same ordering.
-    * @param given The actual list
+    *
+    * @param given    The actual list
     * @param expected The expected list
     * @tparam A Type of the list elements
     */
@@ -107,10 +105,10 @@ class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
     import WikipediaRanking._
     val langs = List("Scala", "Java")
     val articles = List(
-        WikipediaArticle("1","Groovy is pretty interesting, and so is Erlang"),
-        WikipediaArticle("2","Scala and Java run on the JVM"),
-        WikipediaArticle("3","Scala is not purely functional")
-      )
+      WikipediaArticle("1", "Groovy is pretty interesting, and so is Erlang"),
+      WikipediaArticle("2", "Scala and Java run on the JVM"),
+      WikipediaArticle("3", "Scala is not purely functional")
+    )
     val rdd = sc.parallelize(articles)
     val index = makeIndex(langs, rdd)
     val res = index.count() == 2
@@ -122,10 +120,10 @@ class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
     import WikipediaRanking._
     val langs = List("Scala", "Java")
     val articles = List(
-        WikipediaArticle("1","Groovy is pretty interesting, and so is Erlang"),
-        WikipediaArticle("2","Scala and Java run on the JVM"),
-        WikipediaArticle("3","Scala is not purely functional")
-      )
+      WikipediaArticle("1", "Groovy is pretty interesting, and so is Erlang"),
+      WikipediaArticle("2", "Scala and Java run on the JVM"),
+      WikipediaArticle("3", "Scala is not purely functional")
+    )
     val rdd = sc.parallelize(articles)
     val index = makeIndex(langs, rdd)
     val ranked = rankLangsUsingIndex(index)
@@ -138,12 +136,12 @@ class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
     import WikipediaRanking._
     val langs = List("Scala", "Java", "Groovy", "Haskell", "Erlang")
     val articles = List(
-        WikipediaArticle("1","Groovy is pretty interesting, and so is Erlang"),
-        WikipediaArticle("2","Scala and Java run on the JVM"),
-        WikipediaArticle("3","Scala is not purely functional"),
-        WikipediaArticle("4","The cool kids like Haskell more than Java"),
-        WikipediaArticle("5","Java is for enterprise developers")
-      )
+      WikipediaArticle("1", "Groovy is pretty interesting, and so is Erlang"),
+      WikipediaArticle("2", "Scala and Java run on the JVM"),
+      WikipediaArticle("3", "Scala is not purely functional"),
+      WikipediaArticle("4", "The cool kids like Haskell more than Java"),
+      WikipediaArticle("5", "Java is for enterprise developers")
+    )
     val rdd = sc.parallelize(articles)
     val ranked = rankLangsReduceByKey(langs, rdd)
     val res = (ranked.head._1 == "Java")
