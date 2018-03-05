@@ -31,7 +31,6 @@ object StackOverflow extends StackOverflow {
   }
 }
 
-
 /** The parsing and kmeans methods */
 class StackOverflow extends Serializable {
 
