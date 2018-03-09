@@ -54,7 +54,6 @@ class StackOverflow extends Serializable {
   /** K-means parameter: Maximum iterations */
   def kmeansMaxIterations = 120
 
-
   //
   //
   // Parsing utilities:
@@ -65,7 +64,8 @@ class StackOverflow extends Serializable {
   def rawPostings(lines: RDD[String]): RDD[Posting] =
     lines.map(line => {
       val arr = line.split(",")
-      Posting(postingType = arr(0).toInt,
+      Posting(
+        postingType = arr(0).toInt,
         id = arr(1).toInt,
         acceptedAnswer = if (arr(2) == "") None else Some(arr(2).toInt),
         parentId = if (arr(3) == "") None else Some(arr(3).toInt),
@@ -73,12 +73,10 @@ class StackOverflow extends Serializable {
         tags = if (arr.length >= 6) Some(arr(5).intern()) else None)
     })
 
-
   /** Group the questions and answers together */
   def groupedPostings(postings: RDD[Posting]): RDD[(QID, Iterable[(Question, Answer)])] = {
     ???
   }
-
 
   /** Compute the maximum score for each posting */
   def scoredPostings(grouped: RDD[(QID, Iterable[(Question, Answer)])]): RDD[(Question, HighScore)] = {
@@ -98,7 +96,6 @@ class StackOverflow extends Serializable {
     ???
   }
 
-
   /** Compute the vectors for the kmeans */
   def vectorPostings(scored: RDD[(Question, HighScore)]): RDD[(LangIndex, HighScore)] = {
     /** Return optional index of first language that occurs in `tags`. */
@@ -117,7 +114,6 @@ class StackOverflow extends Serializable {
 
     ???
   }
-
 
   /** Sample the vectors */
   def sampleVectors(vectors: RDD[(LangIndex, HighScore)]): Array[(Int, Int)] = {
@@ -161,7 +157,6 @@ class StackOverflow extends Serializable {
     res
   }
 
-
   //
   //
   //  Kmeans method:
@@ -198,7 +193,6 @@ class StackOverflow extends Serializable {
     }
   }
 
-
   //
   //
   //  Kmeans utilities:
@@ -206,9 +200,7 @@ class StackOverflow extends Serializable {
   //
 
   /** Decide whether the kmeans clustering converged */
-  def converged(distance: Double) =
-    distance < kmeansEta
-
+  def converged(distance: Double) = distance < kmeansEta
 
   /** Return the euclidean distance between two points */
   def euclideanDistance(v1: (Int, Int), v2: (Int, Int)): Double = {
@@ -243,7 +235,6 @@ class StackOverflow extends Serializable {
     bestIndex
   }
 
-
   /** Average the vectors */
   def averageVectors(ps: Iterable[(Int, Int)]): (Int, Int) = {
     val iter = ps.iterator
@@ -258,7 +249,6 @@ class StackOverflow extends Serializable {
     }
     ((comp1 / count).toInt, (comp2 / count).toInt)
   }
-
 
   //
   //
