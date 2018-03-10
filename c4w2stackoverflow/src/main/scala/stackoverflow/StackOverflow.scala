@@ -75,7 +75,10 @@ class StackOverflow extends Serializable {
 
   /** Group the questions and answers together */
   def groupedPostings(postings: RDD[Posting]): RDD[(QID, Iterable[(Question, Answer)])] = {
-    ???
+    val question = postings.filter(_.postingType == 1).map(q => (q.id, q))
+    val answers = postings.filter(_.postingType == 2).map(a => (a.parentId.get, a))
+    val both = question.join(answers)
+    both.groupByKey
   }
 
   /** Compute the maximum score for each posting */
