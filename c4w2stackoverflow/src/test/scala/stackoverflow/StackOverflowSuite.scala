@@ -46,7 +46,7 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
 
   test("groupedPostings works correctly") {
 
-    val expected = Array((101, Seq((question, answer))))
+    val expected = Array((question.id, Seq((question, answer))))
     val grouped = app.groupedPostings(raw).collect()
 
     assert(grouped === expected)
