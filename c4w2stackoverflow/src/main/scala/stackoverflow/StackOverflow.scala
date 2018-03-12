@@ -96,7 +96,11 @@ class StackOverflow extends Serializable {
       highScore
     }
 
-    ???
+    grouped.values
+      .map(qa => (qa.head._1, qa.map(_._2)))
+      .map {
+        case (q, a) => (q, answerHighScore(a.toArray))
+      }
   }
 
   /** Compute the vectors for the kmeans */
