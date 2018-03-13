@@ -118,8 +118,13 @@ class StackOverflow extends Serializable {
         }
       }
     }
+    
+    val vectors = for {
+      (question, hiscore) <- scored
+      idx <- firstLangInTag(question.tags, langs)
+    } yield (idx * langSpread, hiscore)
 
-    ???
+    vectors
   }
 
   /** Sample the vectors */
