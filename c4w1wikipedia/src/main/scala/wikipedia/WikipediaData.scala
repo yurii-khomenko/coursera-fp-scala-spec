@@ -5,7 +5,7 @@ import java.io.File
 object WikipediaData {
 
   private[wikipedia] def filePath = {
-    val resource = this.getClass.getClassLoader.getResource("wikipedia/wikipedia.dat")
+    val resource = this.getClass.getClassLoader.getResource("wikipedia/wikipedia.dat.zip")
     if (resource == null) sys.error("Please download the dataset as explained in the assignment instructions")
     new File(resource.toURI).getPath
   }
