@@ -56,6 +56,8 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
 
     val actual = groupedPostings(raw).collect()
     val expected = Array((question.id, Seq((question, answer))))
+
+    assert(actual === expected)
   }
 
   test("scoredPostings works correctly") {
@@ -64,7 +66,7 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     val grouped = groupedPostings(raw)
 
     val actual = scoredPostings(grouped).collect()
-    val expected = Array((q1, 5), (q2, 3))
+    val expected = Array((q2, 3), (q1, 5))
 
     assert(actual === expected)
   }
@@ -76,7 +78,7 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     val scored = scoredPostings(grouped)
 
     val actual = vectorPostings(scored).collect()
-    val expected = Array((500000, 5), (50000, 3))
+    val expected = Array((50000, 3), (500000, 5))
 
     assert(actual === expected)
   }
