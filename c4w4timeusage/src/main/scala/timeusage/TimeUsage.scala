@@ -3,6 +3,7 @@ package timeusage
 import java.nio.file.Paths
 
 import org.apache.spark.sql._
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types._
 
 /** Main class */
@@ -89,8 +90,17 @@ object TimeUsage {
     * 3. other activities (leisure). These are the columns starting with “t02”, “t04”, “t06”, “t07”, “t08”, “t09”,
     *      “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (those which are not part of the previous groups only).
     */
+
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
-    ???
+
+    def filter(prefixes: List[String]): List[Column] =
+      prefixes.flatMap(p => columnNames.filter(_.startsWith(p))).map(col)
+
+    val primaryPref = List("t01", "t03", "t11", "t1801", "t1803")
+    val workingPref = List("t05", "t1805")
+    val otherPref = List("t02", "t04", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t16", "t18")
+
+    (filter(primaryPref), filter(workingPref), filter(otherPref))
   }
 
   /** @return a projection of the initial DataFrame such that all columns containing hours spent on primary needs
