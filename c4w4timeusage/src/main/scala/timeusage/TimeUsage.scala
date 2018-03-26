@@ -27,7 +27,8 @@ object TimeUsage {
   }
 
   def timeUsageByLifePeriod(): Unit = {
-    val (columns, initDf) = read("/timeusage/atussum.csv")
+    val (columns, initDf) = read("/atussum.csv")
+//    val (columns, initDf) = read("/timeusage/atussum.csv")
     val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
     val summaryDf = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
     val finalDf = timeUsageGrouped(summaryDf)
@@ -104,7 +105,6 @@ object TimeUsage {
 
     (filter(primaryPref), filter(workingPref), filter(otherPref))
   }
-
   /** @return a projection of the initial DataFrame such that all columns containing hours spent on primary needs
     *         are summed together in a single column (and same for work and leisure). The “teage” column is also
     *         projected to three values: "young", "active", "elder".
@@ -155,8 +155,8 @@ object TimeUsage {
         .as("sex")
 
     val ageProjection: Column =
-      when('teage >= 15 && 'teage <= 22, "young")
-        .when('teage >= 23 && 'teage <= 55, "active")
+      when('teage.between(15, 22), "young")
+        .when('teage.between(23, 55), "active")
         .otherwise("elder").as("age")
 
     // Create columns that sum columns of the initial dataset
@@ -167,7 +167,7 @@ object TimeUsage {
     def sumInHours(cols: List[Column]): Column = cols.reduceLeft(_ + _).divide(60)
 
     val primaryNeedsProjection: Column = sumInHours(primaryNeedsColumns).as("primaryNeeds")
-    val workProjection: Column = sumInHours(workColumns).as("primaryNeeds")
+    val workProjection: Column = sumInHours(workColumns).as("work")
     val otherProjection: Column = sumInHours(otherColumns).as("other")
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
@@ -191,9 +191,14 @@ object TimeUsage {
     *
     *               Finally, the resulting DataFrame should be sorted by working status, sex and age.
     */
-  def timeUsageGrouped(summed: DataFrame): DataFrame = {
-    ???
-  }
+  def timeUsageGrouped(summed: DataFrame): DataFrame = summed
+    .groupBy('working, 'sex, 'age)
+    .agg(
+      round(avg('primaryNeeds), 1).as("primaryNeeds"),
+      round(avg('work), 1).as("work"),
+      round(avg('other), 1).as("other")
+    )
+    .orderBy('working, 'sex, 'age)
 
   /**
     * @return Same as `timeUsageGrouped`, but using a plain SQL query instead

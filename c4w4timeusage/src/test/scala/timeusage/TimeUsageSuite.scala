@@ -25,6 +25,17 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
 
     val row = summary.collect().head
     val actual = row.toSeq.mkString("[", ", ", "]")
+
     assert(actual === "[working, male, elder, 15.25, 0.0, 8.75]")
+  }
+
+  test("build timeUsageGrouped") {
+    val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
+    val summary = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
+    val timeSummary = timeUsageGrouped(summary)
+
+    val actual = timeSummary.collect().head.toSeq.mkString("[", ", ", "]")
+
+    assert(actual === "[not working, female, active, 11.9, 0.5, 11.7]")
   }
 }
