@@ -3,7 +3,7 @@ package timeusage
 import java.nio.file.Paths
 
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
 /** Main class */
@@ -74,7 +74,9 @@ object TimeUsage {
   /** @return An RDD Row compatible with the schema produced by `dfSchema`
     * @param line Raw fields
     */
-  def row(line: List[String]): Row = Row(line)
+  def row(line: List[String]): Row = Row(
+    line.head.toString :: line.tail.map(_.toDouble): _*
+  )
 
   /** @return The initial data frame columns partitioned in three groups: primary needs (sleeping, eating, etc.),
     *         work and other (leisure activities)
@@ -142,20 +144,34 @@ object TimeUsage {
     // more sense for our use case
     // Hint: you can use the `when` and `otherwise` Spark functions
     // Hint: don’t forget to give your columns the expected name with the `as` method
-    val workingStatusProjection: Column = ???
-    val sexProjection: Column = ???
-    val ageProjection: Column = ???
+    val workingStatusProjection: Column =
+      when('telfs >= 1 && 'telfs < 3, "working")
+        .otherwise("not working")
+        .as("working")
+
+    val sexProjection: Column =
+      when('tesex === 1, "male")
+        .otherwise("female")
+        .as("sex")
+
+    val ageProjection: Column =
+      when('teage >= 15 && 'teage <= 22, "young")
+        .when('teage >= 23 && 'teage <= 55, "active")
+        .otherwise("elder").as("age")
 
     // Create columns that sum columns of the initial dataset
     // Hint: you want to create a complex column expression that sums other columns
     //       by using the `+` operator between them
     // Hint: don’t forget to convert the value to hours
-    val primaryNeedsProjection: Column = ???
-    val workProjection: Column = ???
-    val otherProjection: Column = ???
+
+    def sumInHours(cols: List[Column]): Column = cols.reduceLeft(_ + _).divide(60)
+
+    val primaryNeedsProjection: Column = sumInHours(primaryNeedsColumns).as("primaryNeeds")
+    val workProjection: Column = sumInHours(workColumns).as("primaryNeeds")
+    val otherProjection: Column = sumInHours(otherColumns).as("other")
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
-      .where($"telfs" <= 4) // Discard people who are not in labor force
+      .where('telfs <= 4) // Discard people who are not in labor force
   }
 
   /** @return the average daily time (in hours) spent in primary needs, working or leisure, grouped by the different
