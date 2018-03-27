@@ -19,6 +19,14 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
     assert(schema.fields(1) === StructField("gemetsta", DoubleType, nullable = false))
   }
 
+  test("build classifiedColumns") {
+    val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
+
+    println(primaryNeedsColumns)
+    println(workColumns)
+    println(otherColumns)
+  }
+
   test("build timeUsageSummary") {
     val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
     val summary = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
@@ -36,6 +44,26 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
 
     val actual = timeSummary.collect().head.toSeq.mkString("[", ", ", "]")
 
-    assert(actual === "[not working, female, active, 11.9, 0.5, 11.7]")
+    assert(actual === "[not working, female, active, 11.9, 0.5, 11.2]")
+  }
+
+  test("build timeUsageGroupedSql") {
+    val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
+    val summary = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
+    val timeSummary = timeUsageGroupedSql(summary)
+
+    val actual = timeSummary.collect().head.toSeq.mkString("[", ", ", "]")
+
+    assert(actual === "[not working, female, active, 11.9, 0.5, 11.2]")
+  }
+
+  test("build timeUsageGroupedTyped") {
+    val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
+    val summary = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
+    val timeSummary = timeUsageGroupedTyped(timeUsageSummaryTyped(summary))
+
+    val actual = timeSummary.collect().head
+
+    assert(actual === TimeUsageRow("not working", "female", "active", 11.9, 0.5, 11.2))
   }
 }
