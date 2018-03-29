@@ -42,6 +42,9 @@ object Extraction {
                             temperatureF: Float
                           )
 
+  private def getPath(filename: String) =
+    getClass.getClassLoader.getResource(filename.substring(1)).getPath
+
   def toCelsius(temperature: Temperature) = (temperature - 32) * 5.0 / 9
 
   /**
@@ -52,8 +55,8 @@ object Extraction {
     */
   def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String): Iterable[(LocalDate, Location, Temperature)] = {
 
-    val stations = ss.read.schema(stationsSchema).csv(stationsFile)
-    val temperatures = ss.read.schema(temperaturesSchema).csv(temperaturesFile)
+    val stations = ss.read.schema(stationsSchema).csv(getPath(stationsFile))
+    val temperatures = ss.read.schema(temperaturesSchema).csv(getPath(temperaturesFile))
 
     stations
       .join(temperatures, Seq("stnId", "wbanId")).as[ExtractionRow]
