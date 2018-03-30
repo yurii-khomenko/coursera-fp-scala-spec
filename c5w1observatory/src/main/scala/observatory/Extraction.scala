@@ -33,8 +33,6 @@ object Extraction {
   ))
 
   case class ExtractionRow(
-                            stnId: String,
-                            wbanId: String,
                             lat: Float,
                             lon: Float,
                             month: Byte,
