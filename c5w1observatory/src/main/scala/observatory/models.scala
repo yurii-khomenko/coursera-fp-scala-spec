@@ -1,5 +1,7 @@
 package observatory
 
+import java.lang.Math._
+
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Encoder, Encoders}
 
@@ -11,8 +13,7 @@ object Implicits {
     def toCelsius: Double = (f - 32) * 5 / 9
   }
 
-  implicit def kryoEncoder[A](implicit ct: ClassTag[A]): Encoder[A] =
-    org.apache.spark.sql.Encoders.kryo[A](ct)
+  implicit def kryoEncoder[A](implicit ct: ClassTag[A]): Encoder[A] = Encoders.kryo[A](ct)
 
   implicit def tuple3[A1, A2, A3](implicit e1: Encoder[A1], e2: Encoder[A2], e3: Encoder[A3]): Encoder[(A1, A2, A3)] =
     Encoders.tuple[A1, A2, A3](e1, e2, e3)
@@ -24,7 +25,30 @@ object Implicits {
   * @param lat Degrees of latitude, -90 ≤ lat ≤ 90
   * @param lon Degrees of longitude, -180 ≤ lon ≤ 180
   */
-case class Location(lat: Double, lon: Double)
+case class Location(lat: Double, lon: Double) {
+
+  private val R = 6371000
+  private val p = 2
+
+  def isAntipode(location: Location): Boolean =
+    lat == -location.lat && abs(lon) == 180 - abs(location.lon)
+
+  def distanceTo(location: Location): Double = {
+
+    if (this  == location) 0
+    else if (isAntipode(location)) PI * R
+    else {
+      val lat1 = lat.toRadians
+      val lat2 = location.lat.toRadians
+      val lon1 = lon.toRadians
+      val lon2 = location.lon.toRadians
+
+      acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon2 - lon1)) * R
+    }
+  }
+
+  def idw(location: Location): Double = 1 / pow(distanceTo(location), p)
+}
 
 /**
   * Introduced in Week 3. Represents a tiled web map tile.

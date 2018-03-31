@@ -2,7 +2,6 @@ package observatory
 
 import java.time.LocalDate
 
-import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.functions._
 
@@ -13,8 +12,6 @@ object Extraction {
 
   import Spark.session.implicits._
   import observatory.Implicits._
-
-  Logger.getLogger("org").setLevel(Level.ERROR)
 
   def readStations(stationsFile: String): Dataset[Station] = {
     Spark.session.read
