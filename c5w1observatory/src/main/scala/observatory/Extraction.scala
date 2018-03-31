@@ -12,7 +12,7 @@ import org.apache.spark.sql.types._
 object Extraction {
 
   private val conf = new SparkConf().setAppName("observatory").setMaster("local[*]")
-  private val ss = SparkSession.builder.config(conf).getOrCreate()
+  val ss = SparkSession.builder.config(conf).getOrCreate()
   ss.sparkContext.setLogLevel("ERROR")
 
   import ss.implicits._
@@ -57,7 +57,7 @@ object Extraction {
     val temperatures = ss.read.schema(temperaturesSchema).csv(getPath(temperaturesFile))
 
     stations
-      .join(temperatures, Seq("stnId", "wbanId")).as[ExtractionRow]
+      .join(temperatures, Seq("stnId", "wbanId"), "").as[ExtractionRow]
       .collect()
         .map(r => (LocalDate.of(year, r.month, r.day), Location(r.lat, r.lon), toCelsius(r.temperatureF)))
   }

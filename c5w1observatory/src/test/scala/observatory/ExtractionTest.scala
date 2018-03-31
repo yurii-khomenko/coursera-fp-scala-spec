@@ -19,6 +19,8 @@ trait ExtractionTest extends FunSuite {
 
     val result = locateTemperatures(year, stationsPath, temperaturesPath)
 
+    result.take(10).foreach(println)
+
     assert(result.head === Tuple3(LocalDate.of(1975, 12, 31), Location(-90.0,0.0), -9.166666666666666))
   }
 }
