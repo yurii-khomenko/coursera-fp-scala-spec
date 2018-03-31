@@ -3,6 +3,8 @@ package observatory
 import java.time.LocalDate
 
 import org.apache.log4j.{Level, Logger}
+import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.functions._
 
 /**
   * 1st milestone: data extraction
@@ -14,7 +16,7 @@ object Extraction {
 
   Logger.getLogger("org").setLevel(Level.ERROR)
 
-  def readStations(stationsFile: String) = {
+  def readStations(stationsFile: String): Dataset[Station] = {
     Spark.session.read
       .option("header", value = false)
       .option("mode", "FAILFAST")
@@ -23,7 +25,7 @@ object Extraction {
       .filter((station: Station) => station.lat.isDefined && station.lon.isDefined)
   }
 
-  def readTemperatures(temperaturesFile: String) = {
+  def readTemperatures(temperaturesFile: String): Dataset[Record] = {
     Spark.session.read
       .option("header", value = false)
       .option("mode", "FAILFAST")
@@ -42,9 +44,8 @@ object Extraction {
     val stations = readStations(stationsFile)
     val temperatures = readTemperatures(temperaturesFile)
 
-    stations.join(temperatures,
-      stations("stn").eqNullSafe(temperatures("stn")) &&
-        stations("wban").eqNullSafe(temperatures("wban")))
+    stations
+      .join(temperatures, stations("stn") <=> temperatures("stn") && stations("wban") <=> temperatures("wban"))
       .map(row => (
         LocalDate.of(year, row.getAs[Byte]("month"), row.getAs[Byte]("day")),
         Location(row.getAs[Double]("lat"), row.getAs[Double]("lon")),
@@ -57,7 +58,13 @@ object Extraction {
     * @param records A sequence containing triplets (date, location, temperature)
     * @return A sequence containing, for each location, the average temperature over the year.
     */
-  def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Double)]): Iterable[(Location, Double)] = {
-    ???
-  }
+  def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Double)]): Iterable[(Location, Double)] =
+    Spark.session.sparkContext
+      .parallelize(records.toSeq)
+      .map { case (date, location, temp) => (date.getYear, location, temp) }
+      .toDF("year", "location", "temp")
+      .groupBy('year, 'location)
+      .agg('year, 'location, avg('temp).as("temp"))
+      .select('location.as[Location], 'temp.as[Double])
+      .collect()
 }
