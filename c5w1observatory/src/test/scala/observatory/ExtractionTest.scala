@@ -8,7 +8,7 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-trait ExtractionTest extends FunSuite {
+class ExtractionTest extends FunSuite {
 
   val year = 2010
   val stationsPath = "/stations.csv"
