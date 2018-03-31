@@ -2,48 +2,34 @@ package observatory
 
 import java.time.LocalDate
 
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.types._
+import org.apache.log4j.{Level, Logger}
 
 /**
   * 1st milestone: data extraction
   */
 object Extraction {
 
-  private val conf = new SparkConf().setAppName("observatory").setMaster("local[*]")
-  val ss = SparkSession.builder.config(conf).getOrCreate()
-  ss.sparkContext.setLogLevel("ERROR")
+  import Spark.session.implicits._
+  import observatory.Implicits._
 
-  import ss.implicits._
+  Logger.getLogger("org").setLevel(Level.ERROR)
 
-  val stationsSchema = StructType(Seq(
-    StructField("stnId", StringType, nullable = false),
-    StructField("wbanId", StringType),
-    StructField("lat", FloatType),
-    StructField("lon", FloatType)
-  ))
+  def readStations(stationsFile: String) = {
+    Spark.session.read
+      .option("header", value = false)
+      .option("mode", "FAILFAST")
+      .schema(Station.struct)
+      .csv(Extraction.getClass.getResource(stationsFile).toExternalForm).as[Station]
+      .filter((station: Station) => station.lat.isDefined && station.lon.isDefined)
+  }
 
-  val temperaturesSchema = StructType(Seq(
-    StructField("stnId", StringType, nullable = false),
-    StructField("wbanId", StringType),
-    StructField("month", ByteType, nullable = false),
-    StructField("day", ByteType, nullable = false),
-    StructField("temperatureF", FloatType, nullable = false)
-  ))
-
-  case class ExtractionRow(
-                            lat: Float,
-                            lon: Float,
-                            month: Byte,
-                            day: Byte,
-                            temperatureF: Float
-                          )
-
-  private def getPath(filename: String) =
-    getClass.getClassLoader.getResource(filename.substring(1)).getPath
-
-  def toCelsius(temperature: Temperature) = (temperature - 32) * 5.0 / 9
+  def readTemperatures(temperaturesFile: String) = {
+    Spark.session.read
+      .option("header", value = false)
+      .option("mode", "FAILFAST")
+      .schema(Record.struct)
+      .csv(Extraction.getClass.getResource(temperaturesFile).toExternalForm).as[Record]
+  }
 
   /**
     * @param year             Year number
@@ -51,23 +37,27 @@ object Extraction {
     * @param temperaturesFile Path of the temperatures resource file to use (e.g. "/1975.csv")
     * @return A sequence containing triplets (date, location, temperature)
     */
-  def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String): Iterable[(LocalDate, Location, Temperature)] = {
+  def locateTemperatures(year: Int, stationsFile: String, temperaturesFile: String): Iterable[(LocalDate, Location, Double)] = {
 
-    val stations = ss.read.schema(stationsSchema).csv(getPath(stationsFile))
-    val temperatures = ss.read.schema(temperaturesSchema).csv(getPath(temperaturesFile))
+    val stations = readStations(stationsFile)
+    val temperatures = readTemperatures(temperaturesFile)
 
-    stations
-      .join(temperatures, Seq("stnId", "wbanId"), "").as[ExtractionRow]
+    stations.join(temperatures,
+      stations("stn").eqNullSafe(temperatures("stn")) &&
+        stations("wban").eqNullSafe(temperatures("wban")))
+      .map(row => (
+        LocalDate.of(year, row.getAs[Byte]("month"), row.getAs[Byte]("day")),
+        Location(row.getAs[Double]("lat"), row.getAs[Double]("lon")),
+        row.getAs[Double]("temp").toCelsius
+      ))
       .collect()
-        .map(r => (LocalDate.of(year, r.month, r.day), Location(r.lat, r.lon), toCelsius(r.temperatureF)))
   }
 
   /**
     * @param records A sequence containing triplets (date, location, temperature)
     * @return A sequence containing, for each location, the average temperature over the year.
     */
-  def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Temperature)]): Iterable[(Location, Temperature)] = {
+  def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Double)]): Iterable[(Location, Double)] = {
     ???
   }
-
 }
