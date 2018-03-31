@@ -18,7 +18,6 @@ object Extraction {
 
   def readStations(stationsFile: String): Dataset[Station] = {
     Spark.session.read
-      .option("header", value = false)
       .option("mode", "FAILFAST")
       .schema(Station.struct)
       .csv(Extraction.getClass.getResource(stationsFile).toExternalForm).as[Station]
@@ -27,7 +26,6 @@ object Extraction {
 
   def readTemperatures(temperaturesFile: String): Dataset[Record] = {
     Spark.session.read
-      .option("header", value = false)
       .option("mode", "FAILFAST")
       .schema(Record.struct)
       .csv(Extraction.getClass.getResource(temperaturesFile).toExternalForm).as[Record]
