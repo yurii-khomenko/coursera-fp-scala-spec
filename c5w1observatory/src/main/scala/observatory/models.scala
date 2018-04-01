@@ -35,19 +35,23 @@ case class Location(lat: Double, lon: Double) {
 
   def distanceTo(location: Location): Double = {
 
-    if (this  == location) 0
-    else if (isAntipode(location)) PI * R
-    else {
-      val lat1 = lat.toRadians
-      val lat2 = location.lat.toRadians
-      val lon1 = lon.toRadians
-      val lon2 = location.lon.toRadians
+    val lat1 = lat.toRadians
+    val lat2 = location.lat.toRadians
+    val lon1 = lon.toRadians
+    val lon2 = location.lon.toRadians
 
-      acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon2 - lon1)) * R
-    }
+    acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon2 - lon1)) * R
   }
 
   def idw(location: Location): Double = 1 / pow(distanceTo(location), p)
+}
+
+object Location {
+  def fromPixelIndex(index: Int): Location = {
+    val x = index % 360
+    val y = index / 360
+    Location(90 - y, x - 180)
+  }
 }
 
 /**

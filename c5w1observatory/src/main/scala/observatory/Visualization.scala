@@ -2,14 +2,20 @@ package observatory
 
 import java.lang.Math.round
 
-import com.sksamuel.scrimage.Image
+import com.sksamuel.scrimage.{Image, Pixel}
 
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.concurrent.forkjoin.ForkJoinPool
 import scala.math.{max, min}
 
 /**
   * 2nd milestone: basic visualization
   */
 object Visualization {
+
+  private val imgWidth = 360
+  private val imgHeight = 180
+  private val taskSupport = new ForkJoinTaskSupport(new ForkJoinPool(Runtime.getRuntime.availableProcessors()))
 
   /**
     * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
@@ -76,7 +82,19 @@ object Visualization {
     * @param colors       Color scale
     * @return A 360×180 image where each pixel shows the predicted temperature at its location
     */
-  def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image = {
-    ???
+  def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image =
+   Image(imgWidth, imgHeight, pixels(temperatures, colors))
+
+  private def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Array[Pixel] = {
+
+    val idx = (0 until (imgWidth * imgHeight)).par
+    idx.tasksupport = taskSupport
+
+    idx
+      .map(Location.fromPixelIndex)
+      .map(loc => predictTemperature(temperatures, loc))
+      .map(tmp => interpolateColor(colors, tmp))
+      .map(col => Pixel(col.red, col.green, col.blue, 255))
+      .toArray
   }
 }
