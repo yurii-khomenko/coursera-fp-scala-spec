@@ -1,36 +1,37 @@
 package observatory
 
-import com.sksamuel.scrimage.{Image, Pixel}
+import java.lang.Math.round
+
+import com.sksamuel.scrimage.Image
+
+import scala.math.{max, min}
 
 /**
   * 2nd milestone: basic visualization
   */
 object Visualization {
 
-  private def interpolate(temperatures: Iterable[(Location, Double)], location: Location): Double = {
-
-    def op(dd1: (Double, Double), dd2: (Double, Double)) = (dd1._1 + dd2._1, dd1._2 + dd2._2)
-
-    val (weightedSum, inverseWeightedSum) =
-      Spark.session.sparkContext
-        .parallelize(temperatures.toSeq)
-        .map {
-          case (loc, temp) =>
-            val idw = location.idw(loc)
-            (temp * idw, idw)
-        }
-        .aggregate((0.0, 0.0))(op, op)
-
-    weightedSum / inverseWeightedSum
-  }
-
   /**
     * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
     * @param location     Location where to predict the temperature
     * @return The predicted temperature at `location`
     */
-  def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature = {
-    temperatures.toMap.getOrElse(location, interpolate(temperatures, location))
+  def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature =
+    temperatures.toMap.getOrElse(location, interpolateTemp(temperatures, location))
+
+  private def interpolateTemp(temperatures: Iterable[(Location, Double)], location: Location): Double = {
+
+    val (weightedSum, inverseWeightedSum) = temperatures
+      .map {
+        case (loc, temp) =>
+          val idw = location.idw(loc)
+          (temp * idw, idw)
+      }
+      .reduce[(Double, Double)] {
+        case ((wSum1, idwSum1), (wSum2, idwSum2)) => (wSum1 + wSum2, idwSum1 + idwSum2)
+      }
+
+    weightedSum / inverseWeightedSum
   }
 
   /**
@@ -38,8 +39,36 @@ object Visualization {
     * @param value  The value to interpolate
     * @return The color that corresponds to `value`, according to the color scale defined by `points`
     */
-  def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
-    ???
+  def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color =
+    points.toMap.getOrElse(value, interpolate(points, value))
+
+  def interpolate(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
+
+    val sPoints = points.toSeq.sortBy(-_._1)
+
+    sPoints.indexWhere(_._1 <= value) match {
+      case -1 => sPoints.last._2 // temp lower than lowermost
+      case 0  => sPoints.head._2  // temp greater than highest
+      case x  => interpolateBetween(sPoints(x - 1), sPoints(x), value) // temp between
+    }
+  }
+
+  private def interpolateBetween(hi: (Temperature, Color), lo: (Temperature, Color), value: Temperature): Color = {
+
+    val width = hi._1 - lo._1
+    val offset = value - lo._1
+    val fraction = offset / width
+
+    Color(
+      interpolateChannel(hi._2.red, lo._2.red, fraction),
+      interpolateChannel(hi._2.green, lo._2.green, fraction),
+      interpolateChannel(hi._2.blue, lo._2.blue, fraction)
+    )
+  }
+
+  private def interpolateChannel(hiChannel: Int, loChannel: Int, fraction: Double): Int = {
+    val raw = loChannel + (hiChannel - loChannel) * fraction
+    max(0, min(255, round(raw).toInt))
   }
 
   /**
@@ -50,6 +79,4 @@ object Visualization {
   def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image = {
     ???
   }
-
 }
-
