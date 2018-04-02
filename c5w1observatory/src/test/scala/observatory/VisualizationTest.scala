@@ -109,20 +109,20 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     }
   }
 
-  //  test("visualize") {
-  //
-  //    val log = LoggerFactory.getLogger("my")
-  //    log.info("start")
-  //
-  //    val records = locateTemperatures(year, stationsPath, temperaturesPath)
-  //    log.info("records")
-  //
-  //    val temperatures = locationYearlyAverageRecords(records)
-  //    log.info("temperatures")
-  //
-  //    val image = visualize(temperatures, colors)
-  //    log.info("image")
-  //
-  //    image.output(new java.io.File("target/some-image2015_2.png"))
-  //  }
+//  test("visualize") {
+//
+//    val log = LoggerFactory.getLogger("my")
+//    log.info("start")
+//
+//    val records = locateTemperatures(year, stationsPath, temperaturesPath)
+//    log.info("records")
+//
+//    val temperatures = locationYearlyAverageRecords(records)
+//    log.info("temperatures")
+//
+//    val image = visualize(temperatures, colors)
+//    log.info("image")
+//
+//    image.output(new java.io.File("target/some-image2015_2.png"))
+//  }
 }
