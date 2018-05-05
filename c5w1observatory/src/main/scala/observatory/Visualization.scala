@@ -37,15 +37,14 @@ object Visualization {
 
   }
 
+//  var sPoints: Seq[(Temperature, Color)] = Nil
+
   /**
     * @param points Pairs containing a value and its associated color
     * @param value  The value to interpolate
     * @return The color that corresponds to `value`, according to the color scale defined by `points`
     */
-  def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color =
-    points.toMap.getOrElse(value, interpolate(points, value))
-
-  private def interpolate(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
+  def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
 
     val sPoints = points.toSeq.sortBy(-_._1)
 
@@ -79,19 +78,15 @@ object Visualization {
     * @param colors       Color scale
     * @return A 360×180 image where each pixel shows the predicted temperature at its location
     */
-//  def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image =
-//   Image(imgWidth, imgHeight, pixels(temperatures, colors))
-//
-//  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Array[Pixel] = {
-  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Unit = {
+  def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image =
+   Image(imgWidth, imgHeight, pixels(temperatures, colors))
 
-    val idx = (0 until (imgWidth * imgHeight)).par
+  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Array[Pixel] =
 
-    idx
+    (0 until (imgWidth * imgHeight)).par
       .map(Location.fromPixelIndex)
       .map(loc => predictTemperature(temperatures, loc))
       .map(tmp => interpolateColor(colors, tmp))
-//      .map(col => Pixel(col.red, col.green, col.blue, 255))
-//      .toArray
-  }
+      .map(col => Pixel(col.red, col.green, col.blue, 255))
+      .toArray
 }

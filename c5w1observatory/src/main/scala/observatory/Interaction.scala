@@ -34,9 +34,6 @@ object Interaction {
       .map(color => Pixel(color.red, color.green, color.blue, 127))
       .toArray
 
-
-
-
   /**
     * Generates all the tiles for zoom levels 0 to 3 (included), for all the given years.
     *

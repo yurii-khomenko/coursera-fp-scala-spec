@@ -111,39 +111,39 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     println(s"time: $time ms")
   }
 
-  test("Visualization.pixels performance") {
-
-    val records = withTimer("locateTemperatures") {
-      locateTemperatures(year, stationsPath, temperaturesPath)
-    }
-
-    println(s"records: ${records.size}")
-
-    val temperatures = withTimer("locationYearlyAverageRecords") {
-      locationYearlyAverageRecords(records.take(1000))
-    }
-
-    val time = standardConfig measure {
-      pixels(temperatures, colors)
-    }
-
-    println(s"time: $time ms")
-  }
-
-//  test("visualize") {
+//  test("Visualization.pixels visualize") {
 //
 //    val records = withTimer("locateTemperatures") {
 //      locateTemperatures(year, stationsPath, temperaturesPath)
 //    }
 //
+//    println(s"records: ${records.size}")
+//
 //    val temperatures = withTimer("locationYearlyAverageRecords") {
-//      locationYearlyAverageRecords(records)
+//      locationYearlyAverageRecords(records.take(1000))
 //    }
 //
-//    val image = withTimer("visualize") {
-//      Visualization.visualize(temperatures, colors) // todo improve speed: 69 to ...s
+//    val time = standardConfig measure {
+//      visualize(temperatures, colors)
 //    }
 //
-//    image.output(new java.io.File("target/some-image2015_2.png"))
+//    println(s"time: $time ms")
 //  }
+
+  test("visualize") {
+
+    val records = withTimer("locateTemperatures") {
+      locateTemperatures(year, stationsPath, temperaturesPath)
+    }
+
+    val temperatures = withTimer("locationYearlyAverageRecords") {
+      locationYearlyAverageRecords(records)
+    }
+
+    val image = withTimer("visualize") {
+      Visualization.visualize(temperatures, colors)
+    }
+
+    image.output(new java.io.File("target/some-image2015.png"))
+  }
 }
