@@ -5,6 +5,8 @@ import java.lang.Math._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Encoder, Encoders}
 
+import scala.math
+import scala.math.{acos => _, atan => _, cos => _, pow => _, sin => _, sinh => _, sqrt => _, toDegrees => _, _}
 import scala.reflect.ClassTag
 
 object Implicits {
@@ -30,14 +32,15 @@ case class Location(lat: Double, lon: Double) {
   private val R = 6371000
   private val p = 6
 
-  def distanceTo(location: Location): Double = {
+  def distanceTo(loc: Location): Double = {
 
-    val lat1 = lat.toRadians
-    val lat2 = location.lat.toRadians
-    val lon1 = lon.toRadians
-    val lon2 = location.lon.toRadians
+    val dLat = (loc.lat - lat).toRadians
+    val dLon = (loc.lon - lon).toRadians
 
-    acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon2 - lon1)) * R
+    val a = sin(dLat / 2) * sin(dLat / 2) + cos(lat.toRadians) * cos(loc.lat.toRadians) * sin(dLon / 2) * sin(dLon / 2)
+    val c = 2 * math.atan2(math.sqrt(a), sqrt(1 - a))
+
+    R * c
   }
 
   def idw(location: Location): Double = 1 / pow(distanceTo(location), p)
@@ -60,7 +63,14 @@ object Location {
   * @param y    Y coordinate of the tile
   * @param zoom Zoom level, 0 ≤ zoom ≤ 19
   */
-case class Tile(x: Int, y: Int, zoom: Int)
+case class Tile(x: Int, y: Int, zoom: Int) {
+  def toLocation: Location = {
+    val z = 1 << zoom
+    Location(
+      toDegrees(atan(sinh(Pi * (1.0 - 2.0 * y.toDouble / (1 << z))))),
+      x.toDouble / (1 << z) * 360.0 - 180.0)
+  }
+}
 
 /**
   * Introduced in Week 4. Represents a point on a grid composed of

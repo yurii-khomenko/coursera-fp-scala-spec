@@ -1,50 +1,39 @@
 package observatory
 
-import java.util.Date
-
-import observatory.Extraction._
+import observatory.Extraction.{locateTemperatures, locationYearlyAverageRecords}
 import observatory.Visualization._
 import org.junit.runner.RunWith
+import org.scalameter.{Key, Warmer, config}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.prop.{Checkers, TableDrivenPropertyChecks}
 import org.scalatest.{FunSuite, Inspectors, Matchers}
 
 @RunWith(classOf[JUnitRunner])
-class VisualizationTest extends FunSuite with Checkers with Matchers with TableDrivenPropertyChecks {
+class VisualizationTest extends FunSuite with Checkers with Matchers with TableDrivenPropertyChecks with Config {
 
-  val year = 2015
-  val stationsPath = "/stations.csv"
-  val temperaturesPath = s"/$year.csv"
-
-  val colors = Seq(
-    (60.0, Color(255, 255, 255)),
-    (32.0, Color(255, 0, 0)),
-    (12.0, Color(255, 255, 0)),
-    (0.0, Color(0, 255, 0)),
-    (-15.0, Color(0, 0, 255)),
-    (-27.0, Color(255, 0, 255)),
-    (-50.0, Color(33, 0, 107)),
-    (-60.0, Color(0, 0, 0))
+  val avgTemps = Seq(
+    (Location(50, 40), 0.0),
+    (Location(40, 40), 20.0),
+    (Location(30, 40), 30.0)
   )
 
+  val standardConfig = config(
+    Key.exec.minWarmupRuns -> 20,
+    Key.exec.maxWarmupRuns -> 50,
+    Key.exec.benchRuns -> 50,
+    Key.verbose -> true
+  ) withWarmer new Warmer.Default
+
   test("Location.distanceTo") {
-    assert(Location(0, 20).distanceTo(Location(0, 21)) === 111194.92664454764)
-    assert(Location(50, 20).distanceTo(Location(50, 40)) === 1425217.9126212753)
-    assert(Location(89, 0).distanceTo(Location(89, 1)) === 1940.5944287743828)
+    assert(Location(0, 20).distanceTo(Location(0, 21)) === 111194.92664455874)
+    assert(Location(50, 20).distanceTo(Location(50, 40)) === 1425217.9126212767)
+    assert(Location(89, 0).distanceTo(Location(89, 1)) === 1940.5944300618733)
     assert(Location(45, 0).distanceTo(Location(-45, 180)) === 2.001508679602057E7)
   }
 
   test("Visualization.predictTemperature") {
-
-    val avgTemps = Seq(
-      (Location(50, 40), 0.0),
-      (Location(40, 40), 20.0),
-      (Location(30, 40), 30.0)
-    )
-
     val temp = predictTemperature(avgTemps, Location(46.487743, 33.208097))
-
-    assert(temp.round == 8)
+    assert(temp.round == 2)
   }
 
   test("Visualization.interpolateColor") {
@@ -103,19 +92,48 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     }
   }
 
-  def withTimer[T](label: String)(block: => T): T = {
+  // Performance tests
+  test("Visualization.predictTemperature performance") {
 
-    val start = new Date().getTime
-    val result = block
-    println(s"$label is completed in ${(new Date().getTime - start) / 1000}s.")
+    val time = standardConfig measure {
+      predictTemperature(avgTemps, Location(46.487743, 33.208097))
+    }
 
-    result
+    println(s"time: $time ms")
+  }
+
+  test("Visualization.interpolateColor performance") {
+
+    val time = standardConfig measure {
+      interpolateColor(colors, 35)
+    }
+
+    println(s"time: $time ms")
+  }
+
+  test("Visualization.pixels performance") {
+
+    val records = withTimer("locateTemperatures") {
+      locateTemperatures(year, stationsPath, temperaturesPath)
+    }
+
+    println(s"records: ${records.size}")
+
+    val temperatures = withTimer("locationYearlyAverageRecords") {
+      locationYearlyAverageRecords(records.take(1000))
+    }
+
+    val time = standardConfig measure {
+      pixels(temperatures, colors)
+    }
+
+    println(s"time: $time ms")
   }
 
 //  test("visualize") {
 //
 //    val records = withTimer("locateTemperatures") {
-//       locateTemperatures(year, stationsPath, temperaturesPath)
+//      locateTemperatures(year, stationsPath, temperaturesPath)
 //    }
 //
 //    val temperatures = withTimer("locationYearlyAverageRecords") {
@@ -123,7 +141,7 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
 //    }
 //
 //    val image = withTimer("visualize") {
-//      visualize(temperatures, colors) // todo improve speed: 168s to 80s
+//      Visualization.visualize(temperatures, colors) // todo improve speed: 69 to ...s
 //    }
 //
 //    image.output(new java.io.File("target/some-image2015_2.png"))

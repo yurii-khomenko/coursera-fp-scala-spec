@@ -15,17 +15,13 @@ object Visualization {
 
   private val imgWidth = 360
   private val imgHeight = 180
-  private val taskSupport = new ForkJoinTaskSupport(new ForkJoinPool(Runtime.getRuntime.availableProcessors()))
 
   /**
     * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
     * @param location     Location where to predict the temperature
     * @return The predicted temperature at `location`
     */
-  def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature =
-    temperatures.toMap.getOrElse(location, interpolateTemp(temperatures, location))
-
-  private def interpolateTemp(temperatures: Iterable[(Location, Double)], location: Location): Double = {
+  def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature = {
 
     val (weightedSum, inverseWeightedSum) = temperatures
       .map {
@@ -34,10 +30,11 @@ object Visualization {
           (temp * idw, idw)
       }
       .reduce[(Double, Double)] {
-        case ((wSum1, idwSum1), (wSum2, idwSum2)) => (wSum1 + wSum2, idwSum1 + idwSum2)
-      }
+      case ((wSum1, idwSum1), (wSum2, idwSum2)) => (wSum1 + wSum2, idwSum1 + idwSum2)
+    }
 
     weightedSum / inverseWeightedSum
+
   }
 
   /**
@@ -48,7 +45,7 @@ object Visualization {
   def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color =
     points.toMap.getOrElse(value, interpolate(points, value))
 
-  def interpolate(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
+  private def interpolate(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
 
     val sPoints = points.toSeq.sortBy(-_._1)
 
@@ -82,19 +79,19 @@ object Visualization {
     * @param colors       Color scale
     * @return A 360×180 image where each pixel shows the predicted temperature at its location
     */
-  def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image =
-   Image(imgWidth, imgHeight, pixels(temperatures, colors))
-
-  private def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Array[Pixel] = {
+//  def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image =
+//   Image(imgWidth, imgHeight, pixels(temperatures, colors))
+//
+//  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Array[Pixel] = {
+  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Unit = {
 
     val idx = (0 until (imgWidth * imgHeight)).par
-    idx.tasksupport = taskSupport
 
     idx
       .map(Location.fromPixelIndex)
       .map(loc => predictTemperature(temperatures, loc))
       .map(tmp => interpolateColor(colors, tmp))
-      .map(col => Pixel(col.red, col.green, col.blue, 255))
-      .toArray
+//      .map(col => Pixel(col.red, col.green, col.blue, 255))
+//      .toArray
   }
 }
