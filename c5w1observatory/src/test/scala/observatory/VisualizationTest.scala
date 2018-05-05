@@ -1,12 +1,13 @@
 package observatory
 
+import java.util.Date
+
 import observatory.Extraction._
 import observatory.Visualization._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.prop.{Checkers, TableDrivenPropertyChecks}
 import org.scalatest.{FunSuite, Inspectors, Matchers}
-import org.slf4j.{Logger, LoggerFactory}
 
 @RunWith(classOf[JUnitRunner])
 class VisualizationTest extends FunSuite with Checkers with Matchers with TableDrivenPropertyChecks {
@@ -26,13 +27,6 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     (-60.0, Color(0, 0, 0))
   )
 
-  test("Location.isAntipode") {
-    assert(Location(50, 40).isAntipode(Location(-50, -140)))
-    assert(Location(-50, -140).isAntipode(Location(50, 40)))
-    assert(Location(0, 0).isAntipode(Location(0, -180)))
-    assert(Location(45, 0).isAntipode(Location(-45, 180)))
-  }
-
   test("Location.distanceTo") {
     assert(Location(0, 20).distanceTo(Location(0, 21)) === 111194.92664454764)
     assert(Location(50, 20).distanceTo(Location(50, 40)) === 1425217.9126212753)
@@ -40,7 +34,7 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     assert(Location(45, 0).distanceTo(Location(-45, 180)) === 2.001508679602057E7)
   }
 
-  test("predictTemperature") {
+  test("Visualization.predictTemperature") {
 
     val avgTemps = Seq(
       (Location(50, 40), 0.0),
@@ -53,7 +47,7 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     assert(temp.round == 8)
   }
 
-  test("interpolateColor") {
+  test("Visualization.interpolateColor") {
 
     assert(interpolateColor(colors, 70) === Color(255, 255, 255))
 
@@ -82,7 +76,7 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     assert(interpolateColor(colors, -80) === Color(0, 0, 0))
   }
 
-  test("interpolateColor2") {
+  test("Visualization.interpolateColor2") {
     val scale = List((-2.147483648E9, Color(255, 0, 0)), (2.147483647E9, Color(0, 0, 255)))
     assert(interpolateColor(scale, -0.5) === Color(128, 0, 128))
   }
@@ -109,19 +103,28 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     }
   }
 
+  def withTimer[T](label: String)(block: => T): T = {
+
+    val start = new Date().getTime
+    val result = block
+    println(s"$label is completed in ${(new Date().getTime - start) / 1000}s.")
+
+    result
+  }
+
 //  test("visualize") {
 //
-//    val log = LoggerFactory.getLogger("my")
-//    log.info("start")
+//    val records = withTimer("locateTemperatures") {
+//       locateTemperatures(year, stationsPath, temperaturesPath)
+//    }
 //
-//    val records = locateTemperatures(year, stationsPath, temperaturesPath)
-//    log.info("records")
+//    val temperatures = withTimer("locationYearlyAverageRecords") {
+//      locationYearlyAverageRecords(records)
+//    }
 //
-//    val temperatures = locationYearlyAverageRecords(records)
-//    log.info("temperatures")
-//
-//    val image = visualize(temperatures, colors)
-//    log.info("image")
+//    val image = withTimer("visualize") {
+//      visualize(temperatures, colors) // todo improve speed: 168s to 80s
+//    }
 //
 //    image.output(new java.io.File("target/some-image2015_2.png"))
 //  }

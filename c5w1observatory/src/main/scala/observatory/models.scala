@@ -28,10 +28,7 @@ object Implicits {
 case class Location(lat: Double, lon: Double) {
 
   private val R = 6371000
-  private val p = 2
-
-  def isAntipode(location: Location): Boolean =
-    lat == -location.lat && abs(lon) == 180 - abs(location.lon)
+  private val p = 6
 
   def distanceTo(location: Location): Double = {
 
