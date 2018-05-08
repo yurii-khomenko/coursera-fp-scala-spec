@@ -4,8 +4,6 @@ import java.lang.Math.round
 
 import com.sksamuel.scrimage.{Image, Pixel}
 
-import scala.collection.parallel.ForkJoinTaskSupport
-import scala.concurrent.forkjoin.ForkJoinPool
 import scala.math.{max, min}
 
 /**
@@ -21,6 +19,7 @@ object Visualization {
     * @param location     Location where to predict the temperature
     * @return The predicted temperature at `location`
     */
+
   def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature = {
 
     val (weightedSum, inverseWeightedSum) = temperatures
@@ -34,10 +33,7 @@ object Visualization {
     }
 
     weightedSum / inverseWeightedSum
-
   }
-
-//  var sPoints: Seq[(Temperature, Color)] = Nil
 
   /**
     * @param points Pairs containing a value and its associated color

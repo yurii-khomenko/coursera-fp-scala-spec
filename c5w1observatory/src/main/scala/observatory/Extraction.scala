@@ -17,7 +17,7 @@ object Extraction {
     Spark.session.read
       .option("mode", "FAILFAST")
       .schema(Station.struct)
-      .csv(Extraction.getClass.getResource(stationsFile).toExternalForm).as[Station]
+      .csv(getClass.getResource(stationsFile).toExternalForm).as[Station]
       .filter((station: Station) => station.lat.isDefined && station.lon.isDefined)
   }
 
@@ -25,7 +25,7 @@ object Extraction {
     Spark.session.read
       .option("mode", "FAILFAST")
       .schema(Record.struct)
-      .csv(Extraction.getClass.getResource(temperaturesFile).toExternalForm).as[Record]
+      .csv(getClass.getResource(temperaturesFile).toExternalForm).as[Record]
   }
 
   /**

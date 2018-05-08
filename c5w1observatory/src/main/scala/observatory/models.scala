@@ -5,7 +5,6 @@ import java.lang.Math._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Encoder, Encoders}
 
-import scala.math
 import scala.math.{acos => _, atan => _, cos => _, pow => _, sin => _, sinh => _, sqrt => _, toDegrees => _, _}
 import scala.reflect.ClassTag
 
@@ -30,6 +29,7 @@ object Implicits {
 case class Location(lat: Double, lon: Double) {
 
   private val R = 6371000
+  private val minDistance = 1000
   private val p = 6
 
   def distanceTo(loc: Location): Double = {
@@ -43,7 +43,10 @@ case class Location(lat: Double, lon: Double) {
     R * c
   }
 
-  def idw(location: Location): Double = 1 / pow(distanceTo(location), p)
+  def idw(location: Location): Double = {
+    val distance = distanceTo(location)
+    1 / pow(math.max(distance, minDistance), p)
+  }
 }
 
 object Location {
@@ -64,11 +67,19 @@ object Location {
   * @param zoom Zoom level, 0 ≤ zoom ≤ 19
   */
 case class Tile(x: Int, y: Int, zoom: Int) {
-  def toLocation: Location = {
-    val z = 1 << zoom
+  def toLocation: Location =
     Location(
-      toDegrees(atan(sinh(Pi * (1.0 - 2.0 * y.toDouble / (1 << z))))),
-      x.toDouble / (1 << z) * 360.0 - 180.0)
+      toDegrees(atan(sinh(Pi * (1.0 - 2.0 * y.toDouble / (1 << zoom))))),
+      x.toDouble / (1 << zoom) * 360.0 - 180.0)
+}
+
+object Tile {
+  def fromPixelIndex(index: Int, imgSize: Int, tile: Tile, zoom: Int): Tile = {
+
+    val x = index % imgSize
+    val y = index / imgSize
+
+    Tile(tile.x * imgSize + x, tile.y * imgSize + y, zoom)
   }
 }
 

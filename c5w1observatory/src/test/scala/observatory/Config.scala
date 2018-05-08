@@ -2,11 +2,20 @@ package observatory
 
 import java.util.Date
 
+import org.scalameter.{Key, Warmer, config}
+
 trait Config {
 
   val year = 2015
   val stationsPath = "/stations.csv"
   val temperaturesPath = s"/$year.csv"
+
+  val standardConfig = config(
+    Key.exec.minWarmupRuns -> 20,
+    Key.exec.maxWarmupRuns -> 50,
+    Key.exec.benchRuns -> 50,
+    Key.verbose -> true
+  ) withWarmer new Warmer.Default
 
   val colors = Seq(
     (60.0, Color(255, 255, 255)),

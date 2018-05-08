@@ -17,13 +17,6 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     (Location(30, 40), 30.0)
   )
 
-  val standardConfig = config(
-    Key.exec.minWarmupRuns -> 20,
-    Key.exec.maxWarmupRuns -> 50,
-    Key.exec.benchRuns -> 50,
-    Key.verbose -> true
-  ) withWarmer new Warmer.Default
-
   test("Location.distanceTo") {
     assert(Location(0, 20).distanceTo(Location(0, 21)) === 111194.92664455874)
     assert(Location(50, 20).distanceTo(Location(50, 40)) === 1425217.9126212767)
@@ -111,39 +104,41 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     println(s"time: $time ms")
   }
 
-//  test("Visualization.pixels visualize") {
-//
-//    val records = withTimer("locateTemperatures") {
-//      locateTemperatures(year, stationsPath, temperaturesPath)
-//    }
-//
-//    println(s"records: ${records.size}")
-//
-//    val temperatures = withTimer("locationYearlyAverageRecords") {
-//      locationYearlyAverageRecords(records.take(1000))
-//    }
-//
-//    val time = standardConfig measure {
-//      visualize(temperatures, colors)
-//    }
-//
-//    println(s"time: $time ms")
-//  }
-
-  test("visualize") {
+  test("Visualization.pixels visualize") {
 
     val records = withTimer("locateTemperatures") {
       locateTemperatures(year, stationsPath, temperaturesPath)
     }
 
+    println(s"records: ${records.size}")
+
     val temperatures = withTimer("locationYearlyAverageRecords") {
-      locationYearlyAverageRecords(records)
+      locationYearlyAverageRecords(records.take(1000))
     }
 
-    val image = withTimer("visualize") {
-      Visualization.visualize(temperatures, colors)
+    println(s"temperatures: ${temperatures.size}")
+
+    val time = standardConfig measure {
+      visualize(temperatures, colors)
     }
 
-    image.output(new java.io.File("target/some-image2015.png"))
+    println(s"time: $time ms")
   }
+
+//  test("visualize") {
+//
+//    val records = withTimer("locateTemperatures") {
+//      locateTemperatures(year, stationsPath, temperaturesPath)
+//    }
+//
+//    val temperatures = withTimer("locationYearlyAverageRecords") {
+//      locationYearlyAverageRecords(records)
+//    }
+//
+//    val image = withTimer("visualize") {
+//      Visualization.visualize(temperatures, colors)
+//    }
+//
+//    image.output(new java.io.File("target/some-image2015.png"))
+//  }
 }

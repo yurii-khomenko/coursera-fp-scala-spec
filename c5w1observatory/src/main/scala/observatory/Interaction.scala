@@ -8,7 +8,7 @@ import observatory.Visualization._
   */
 object Interaction {
 
-  val tileSize = 12
+  val imgSize = 128
 
   /**
     * @param tile Tile coordinates
@@ -23,16 +23,33 @@ object Interaction {
     * @return A 256×256 image showing the contents of the given tile
     */
   def tile(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)], tile: Tile): Image =
-    Image(tileSize, tileSize, pixels(temperatures, colors, tile))
+    Image(imgSize, imgSize, pixels(temperatures, colors, tile)).scale(2)
 
-  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)], tile: Tile): Array[Pixel] =
-    (0 until (tileSize * tileSize)).par
-      .map(index => Tile(tile.zoom, (index % tileSize) / tileSize + tile.x, (index / tileSize) / tileSize + tile.y))
-      .map(tile => tileLocation(tile))
+  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)], tile: Tile): Array[Pixel] = {
+
+    val subTileZoom = (math.log10(imgSize) / math.log10(2)).toInt
+
+    (0 until (imgSize * imgSize)).par
+      //      .map(index => Tile((index % tileSize) / tileSize + tile.x, (index / tileSize) / tileSize + tile.y, tile.zoom).toLocation)
+      .map(index => {
+
+
+      val newTile = Tile.fromPixelIndex(index, imgSize, tile, tile.zoom + subTileZoom)
+
+      val location = newTile.toLocation
+
+      //println(s"$index: $tile $newTile $location")
+
+      location
+    })
+
+
       .map(location => predictTemperature(temperatures, location))
       .map(temperature => interpolateColor(colors, temperature))
       .map(color => Pixel(color.red, color.green, color.blue, 127))
       .toArray
+
+  }
 
   /**
     * Generates all the tiles for zoom levels 0 to 3 (included), for all the given years.
