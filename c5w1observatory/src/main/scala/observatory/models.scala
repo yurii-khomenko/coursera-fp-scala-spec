@@ -75,13 +75,13 @@ case class Tile(x: Int, y: Int, zoom: Int) {
 
 object Tile {
 
-  def fromPixelIndex(index: Int, imgSize: Int, parentTile: Tile): Tile = {
+  def fromPixelIndex(index: Int, imgSize: Int, parent: Tile): Tile = {
 
     val x = index % imgSize
     val y = index / imgSize
     val zoom = (math.log10(imgSize) / math.log10(2)).toInt
 
-    Tile(parentTile.x * imgSize + x, parentTile.y * imgSize + y, parentTile.zoom + zoom)
+    Tile(parent.x * imgSize + x, parent.y * imgSize + y, parent.zoom + zoom)
   }
 }
 
