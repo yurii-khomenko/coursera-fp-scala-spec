@@ -8,7 +8,8 @@ import observatory.Visualization._
   */
 object Interaction {
 
-  val imgSize = 256
+  private val imgSize = 256
+  private val alpha: Int = 127
 
   /**
     * @param tile Tile coordinates
@@ -25,17 +26,13 @@ object Interaction {
   def tile(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)], tile: Tile): Image =
     Image(imgSize, imgSize, pixels(temperatures, colors, tile))
 
-  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)], tile: Tile): Array[Pixel] = {
-
-    val subTileZoom = (math.log10(imgSize) / math.log10(2)).toInt
-
+  def pixels(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)], tile: Tile): Array[Pixel] =
     (0 until (imgSize * imgSize)).par
-      .map(index => Tile.fromPixelIndex(index, imgSize, tile, tile.zoom + subTileZoom).toLocation)
+      .map(index => Tile.fromPixelIndex(index, imgSize, tile).toLocation)
       .map(location => predictTemperature(temperatures, location))
       .map(temperature => interpolateColor(colors, temperature))
-      .map(color => Pixel(color.red, color.green, color.blue, 127))
+      .map(color => Pixel(color.red, color.green, color.blue, alpha))
       .toArray
-  }
 
   /**
     * Generates all the tiles for zoom levels 0 to 3 (included), for all the given years.

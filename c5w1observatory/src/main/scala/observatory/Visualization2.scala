@@ -40,12 +40,9 @@ object Visualization2 {
   def visualizeGrid(grid: GridLocation => Temperature, colors: Iterable[(Temperature, Color)], tile: Tile): Image =
     Image(imgSize, imgSize, pixels(grid, colors, tile))
 
-  def pixels(grid: GridLocation => Temperature, colors: Iterable[(Temperature, Color)], tile: Tile) = {
-
-    val subTileZoom = (math.log10(imgSize) / math.log10(2)).toInt
-
+  def pixels(grid: GridLocation => Temperature, colors: Iterable[(Temperature, Color)], tile: Tile) =
     (0 until (imgSize * imgSize)).par
-      .map(index => Tile.fromPixelIndex(index, imgSize, tile, tile.zoom + subTileZoom).toLocation)
+      .map(index => Tile.fromPixelIndex(index, imgSize, tile).toLocation)
       .map(location => {
         val x1 = location.lon - location.lon.floor.toInt
         val y1 = location.lat.ceil.toInt - location.lat
@@ -58,5 +55,4 @@ object Visualization2 {
       .map(temperature => Visualization.interpolateColor(colors, temperature))
       .map(color => Pixel(color.red, color.green, color.blue, alpha))
       .toArray
-  }
 }

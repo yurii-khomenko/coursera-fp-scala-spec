@@ -1,6 +1,7 @@
 package observatory
 
 import observatory.Extraction._
+import observatory.Interaction.pixels
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -38,4 +39,42 @@ class InteractionTest extends FunSuite with Checkers with Config {
 
     assert(actual == expected)
   }
+
+  test("Interaction.pixels") {
+
+    val records = withTimer("locateTemperatures") {
+      locateTemperatures(year, stationsPath, temperaturesPath)
+    }
+
+    println(s"records: ${records.size}")
+
+    val temperatures = withTimer("locationYearlyAverageRecords") {
+      locationYearlyAverageRecords(records.take(1000))
+    }
+
+    println(s"temperatures: ${temperatures.size}")
+
+    val time = standardConfig measure {
+      pixels(temperatures, colors, Tile(0, 0, 0))
+    }
+
+    println(s"time: $time ms")
+  }
+
+//  test("Interaction.visualize") {
+//
+//    val records = withTimer("locateTemperatures") {
+//      locateTemperatures(year, stationsPath, temperaturesPath)
+//    }
+//
+//    val temperatures = withTimer("locationYearlyAverageRecords") {
+//      locationYearlyAverageRecords(records)
+//    }
+//
+//    val image = withTimer("visualize") {
+//      Interaction.tile(temperatures, colors, Tile(0, 0, 0))
+//    }
+//
+//    image.output(new java.io.File("target/tile-image2015.png"))
+//  }
 }

@@ -104,7 +104,7 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     println(s"time: $time ms")
   }
 
-  test("Visualization.pixels visualize") {
+  test("Visualization.pixels") {
 
     val records = withTimer("locateTemperatures") {
       locateTemperatures(year, stationsPath, temperaturesPath)
@@ -119,7 +119,7 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
     println(s"temperatures: ${temperatures.size}")
 
     val time = standardConfig measure {
-      visualize(temperatures, colors)
+      pixels(temperatures, colors)
     }
 
     println(s"time: $time ms")
@@ -136,9 +136,9 @@ class VisualizationTest extends FunSuite with Checkers with Matchers with TableD
 //    }
 //
 //    val image = withTimer("visualize") {
-//      Visualization.visualize(temperatures, colors)
+//      visualize(temperatures, colors)
 //    }
 //
-//    image.output(new java.io.File("target/some-image2015.png"))
+//    image.output(new java.io.File("target/visualize-image2015.png"))
 //  }
 }
