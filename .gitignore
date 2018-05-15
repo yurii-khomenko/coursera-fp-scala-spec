@@ -4,3 +4,7 @@ target/
 /**/wikipedia.dat
 /**/stackoverflow.csv
 /**/atussum.csv
+spark-warehouse/
+
+!/target/temperatures/
+!/target/deviations/

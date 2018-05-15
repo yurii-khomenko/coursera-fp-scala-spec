@@ -2,6 +2,7 @@ package observatory
 
 import java.util.Date
 
+import observatory.Extraction.{locateTemperatures, locationYearlyAverageRecords}
 import org.scalameter.{Key, Warmer, config}
 
 trait Config {
@@ -28,10 +29,21 @@ trait Config {
     (-60.0, Color(0, 0, 0))
   )
 
+  lazy val records = withTimer("locateTemperatures") {
+    locateTemperatures(year, stationsPath, temperaturesPath)
+  }
+
+  lazy val temperatures = withTimer("locationYearlyAverageRecords") {
+    locationYearlyAverageRecords(records)
+  }
+
   def withTimer[T](label: String)(block: => T): T = {
+
+    println(s"$label started...")
 
     val start = new Date().getTime
     val result = block
+
     println(s"$label is completed in ${(new Date().getTime - start) / 1000}s.")
 
     result

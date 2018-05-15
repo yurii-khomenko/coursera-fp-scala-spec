@@ -1,7 +1,8 @@
 package observatory
 
-import observatory.Extraction._
-import observatory.Interaction.pixels
+import java.io.File
+
+import observatory.Interaction.{generateTiles, pixels, tile}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -32,7 +33,7 @@ class InteractionTest extends FunSuite with Checkers with Config {
 
   test("Interaction.tileLocation3") {
 
-    val tile = Tile(65544,43582,17)
+    val tile = Tile(65544, 43582, 17)
     val actual = tile.toLocation
 
     val expected = Location(51.512161249555156, 0.02197265625)
@@ -40,18 +41,9 @@ class InteractionTest extends FunSuite with Checkers with Config {
     assert(actual == expected)
   }
 
-  test("Interaction.pixels") {
-
-    val records = withTimer("locateTemperatures") {
-      locateTemperatures(year, stationsPath, temperaturesPath)
-    }
+  ignore("Interaction.pixels") {
 
     println(s"records: ${records.size}")
-
-    val temperatures = withTimer("locationYearlyAverageRecords") {
-      locationYearlyAverageRecords(records.take(1000))
-    }
-
     println(s"temperatures: ${temperatures.size}")
 
     val time = standardConfig measure {
@@ -61,20 +53,36 @@ class InteractionTest extends FunSuite with Checkers with Config {
     println(s"time: $time ms")
   }
 
-//  test("Interaction.visualize") {
-//
-//    val records = withTimer("locateTemperatures") {
-//      locateTemperatures(year, stationsPath, temperaturesPath)
-//    }
-//
-//    val temperatures = withTimer("locationYearlyAverageRecords") {
-//      locationYearlyAverageRecords(records)
-//    }
-//
-//    val image = withTimer("visualize") {
-//      Interaction.tile(temperatures, colors, Tile(0, 0, 0))
-//    }
-//
-//    image.output(new java.io.File("target/tile-image2015.png"))
-//  }
+  ignore("Interaction.tile") {
+
+    val image = withTimer("visualize") {
+      tile(temperatures, colors, Tile(0, 0, 0))
+    }
+
+    image.output(new java.io.File("target/tile-image2015.png"))
+  }
+
+  ignore("generate tiles for all years") {
+
+    def saveImage(year: Int, tile: Tile, data: Iterable[(Location, Double)]) = {
+
+      val directory = s"target/temperatures/$year/${tile.zoom}"
+      val filename = s"${tile.x}-${tile.y}.png"
+      val pathname = directory + "/" + filename
+
+      val dir = new File(directory)
+      if (!dir.exists()) dir.mkdirs()
+
+      println(pathname)
+
+      Interaction.tile(data, colors, tile).output(new java.io.File(pathname))
+    }
+
+    for {
+      year <- 1975 to 2015
+      data = Set((year, temperatures))
+    } withTimer(s"generate tiles for year: $year") {
+      generateTiles(data, saveImage)
+    }
+  }
 }
