@@ -33,7 +33,7 @@ object Interaction2 {
         (-2.0, Color(0, 255, 255)),
         (-7.0, Color(0, 0, 255))
       ),
-      1975 to 2015
+      1990 to 2015
     )
   )
 
@@ -52,12 +52,14 @@ object Interaction2 {
     *         this method should return the closest value that is included
     *         in the `selectedLayer` bounds.
     */
-  def yearSelection(selectedLayer: Signal[Layer], sliderValue: Signal[Year]): Signal[Year] = {
-    val bounds: Seq[Int] = yearBounds(selectedLayer)()
+  def yearSelection(selectedLayer: Signal[Layer], sliderValue: Signal[Year]): Signal[Year] = Signal {
+
+    val bounds = yearBounds(selectedLayer)()
     val bmin = bounds.min
     val bmax = bounds.max
-    val value = sliderValue()
-    Signal(value max bmin min bmax)
+    val sv = sliderValue()
+
+    sv max bounds.min min bounds.max
   }
 
   /**
