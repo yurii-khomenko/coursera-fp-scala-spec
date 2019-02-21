@@ -59,7 +59,7 @@ class InteractionTest extends FunSuite with Checkers with Config {
       tile(temperatures, colors, Tile(0, 0, 0))
     }
 
-    image.output(new java.io.File("target/tile-image2015.png"))
+    image.output(new File("target/tile-image2015.png"))
   }
 
   ignore("generate tiles for all years") {
@@ -75,7 +75,7 @@ class InteractionTest extends FunSuite with Checkers with Config {
 
       println(pathname)
 
-      Interaction.tile(data, colors, tile).output(new java.io.File(pathname))
+      Interaction.tile(data, colors, tile).output(new File(pathname))
     }
 
     for {

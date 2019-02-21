@@ -55,4 +55,13 @@ object Visualization2 {
       .map(temperature => Visualization.interpolateColor(colors, temperature))
       .map(color => Pixel(color.red, color.green, color.blue, alpha))
       .toArray
+
+//  def generateGrids[Data](yearlyData: Iterable[(Year, Data)], generateImage: (Year, Tile, GridLocation => Temperature) => Unit): Unit = {
+//    for {
+//      (year, data) <- yearlyData
+//      zoom <- 0 to 3
+//      x <- 0 until 1 << zoom
+//      y <- 0 until 1 << zoom
+//    } generateImage(year, Tile(x, y, zoom), data)
+//  }
 }
